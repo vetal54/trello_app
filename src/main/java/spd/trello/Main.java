@@ -17,7 +17,7 @@ public class Main {
         while (trueOrFalse) {
             System.out.println("Enter the name of the object you want to create."
                     + "\nIt is can be \"board\" or \"card\". "
-                    + "\nIf you don't want to create a new object enter \"-\"");
+                    + "\nIf you don't want to create a new object enter \"-\".");
             input = scanner.next().toLowerCase(Locale.ROOT);
             switch (input) {
                 case "board": {
@@ -30,8 +30,12 @@ public class Main {
                     cardService.print(card);
                     break;
                 }
-                default:
+                case "-": {
                     trueOrFalse = false;
+                    break;
+                }
+                default:
+                    System.out.println("Your input is incorrect.\n");
             }
         }
     }

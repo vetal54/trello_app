@@ -37,6 +37,7 @@ public class Board extends Resource {
         return name + ", "
                 + "create by: " + getCreateBy()
                 + ", id: " + getId()
-                + ", time: " + getCreateDate().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
+                + ", time: " + getCreateDate().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"))
+                + "\n";
     }
 }
