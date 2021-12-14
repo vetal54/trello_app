@@ -3,15 +3,23 @@ package spd.trello.service;
 import spd.trello.domain.Board;
 import spd.trello.domain.User;
 
+import java.util.Scanner;
+
 public class BoardService extends AbstractService<Board> {
     @Override
     public Board create() {
         Board board = new Board();
-        board.setName("board1");
+        Scanner scanner = new Scanner(System.in);
+        System.out.println("Enter board name:");
+        board.setName(scanner.next());
+        System.out.println("Enter information about the user who created the board");
         board.setCreateBy(new User());
-        board.getCreateBy().setFirstName("Vitaliy");
-        board.getCreateBy().setLastName("Dubovyk");
-        board.getCreateBy().setEmail("vitaliy.dubovyk.1@gmail.com");
+        System.out.println("Enter first name:");
+        board.getCreateBy().setFirstName(scanner.next());
+        System.out.println("Enter last name");
+        board.getCreateBy().setLastName(scanner.next());
+        System.out.println("Enter user email");
+        board.getCreateBy().setEmail(scanner.next());
         return board;
     }
 

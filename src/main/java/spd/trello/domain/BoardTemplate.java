@@ -6,7 +6,7 @@ import lombok.experimental.FieldDefaults;
 @Data
 @NoArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class BoardTemplate {
+public class BoardTemplate extends Domain{
     String name;
 
     public BoardTemplate(String name) {
