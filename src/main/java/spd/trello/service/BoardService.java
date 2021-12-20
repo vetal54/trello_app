@@ -12,14 +12,8 @@ public class BoardService extends AbstractService<Board> {
         Scanner scanner = new Scanner(System.in);
         System.out.println("Enter board name:");
         board.setName(scanner.next());
-        System.out.println("Enter information about the user who created the board");
-        board.setCreateBy(new User());
-        System.out.println("Enter first name:");
-        board.getCreateBy().setFirstName(scanner.next());
-        System.out.println("Enter last name");
-        board.getCreateBy().setLastName(scanner.next());
-        System.out.println("Enter user email");
-        board.getCreateBy().setEmail(scanner.next());
+        System.out.println("Enter the email of the user who created the board:");
+        board.setCreateBy(scanner.next());
         return board;
     }
 

@@ -1,6 +1,5 @@
 package spd.trello;
 
-import spd.trello.domain.*;
 import spd.trello.service.BoardService;
 import spd.trello.service.CardService;
 
@@ -20,22 +19,16 @@ public class Main {
                     + "\nIf you don't want to create a new object enter \"-\".");
             input = scanner.next().toLowerCase(Locale.ROOT);
             switch (input) {
-                case "board": {
-                    Board board = boardService.create();
-                    boardService.print(board);
-                    break;
+                case "board" -> {
+                    boardService.print(boardService.create());
                 }
-                case "card": {
-                    Card card = cardService.create();
-                    cardService.print(card);
-                    break;
+                case "card" -> {
+                    cardService.print(cardService.create());
                 }
-                case "-": {
+                case "-" -> {
                     trueOrFalse = false;
-                    break;
                 }
-                default:
-                    System.out.println("Your input is incorrect.\n");
+                default -> System.out.println("Your input is incorrect.\n");
             }
         }
     }

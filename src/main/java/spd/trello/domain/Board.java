@@ -35,8 +35,7 @@ public class Board extends Resource {
     @Override
     public String toString() {
         return name + ", "
-                + "create by: " + getCreateBy()
-                + ", id: " + getId()
+                + "id: " + getId()
                 + ", time: " + getCreateDate().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"))
                 + "\n";
     }
