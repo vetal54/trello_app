@@ -10,5 +10,6 @@ import java.util.UUID;
 @NoArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class Domain {
+
     UUID id = UUID.randomUUID();
 }

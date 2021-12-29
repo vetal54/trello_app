@@ -1,11 +1,13 @@
 package spd.trello.repository;
 
-import javax.sql.DataSource;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
+import java.util.UUID;
 
-public class DBActions {
-    public void add(DataSource dataSource) {
+public interface DBActions<E> {
+    void create(E e);
 
-    }
+    void update(E e);
+
+    E get(UUID id);
+
+    boolean delete(UUID id);
 }

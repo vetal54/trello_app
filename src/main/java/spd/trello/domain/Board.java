@@ -6,18 +6,21 @@ import lombok.experimental.FieldDefaults;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @Data
 @NoArgsConstructor
 @EqualsAndHashCode(callSuper = true)
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class Board extends Resource {
+
     String name;
     String description;
     List<CardList> cardLists = new ArrayList<>();
     List<Member> members = new ArrayList<>();
     BoardVisibility visibility;
     Boolean active = true;
+    UUID workspace_id;
 
     public Board(String name, BoardVisibility visibility) {
         this.name = name;

@@ -2,6 +2,7 @@ package spd.trello.domain;
 
 import lombok.*;
 import lombok.experimental.FieldDefaults;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -10,6 +11,7 @@ import java.util.List;
 @EqualsAndHashCode(callSuper = true)
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class Workspace extends Resource {
+
     String name;
     List<Board> boards = new ArrayList<>();
     List<Member> members = new ArrayList<>();
@@ -21,11 +23,17 @@ public class Workspace extends Resource {
         this.visibility = visibility;
     }
 
-    public void addBoards(Board board) {
+    public void addBoard(Board board) {
+        board.setWorkspace_id(this.getId());
         boards.add(board);
     }
 
     public void addMembers(Member member) {
         members.add(member);
+    }
+
+    @Override
+    public String toString() {
+        return name + " " + getId();
     }
 }

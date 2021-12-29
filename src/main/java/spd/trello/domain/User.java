@@ -9,6 +9,7 @@ import java.util.TimeZone;
 @EqualsAndHashCode(callSuper = true)
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class User extends Domain {
+
     String firstName;
     String lastName;
     String email;

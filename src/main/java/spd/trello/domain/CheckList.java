@@ -10,6 +10,7 @@ import java.util.List;
 @EqualsAndHashCode(callSuper = true)
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class CheckList extends Resource {
+
     String name;
     List<CheckableItem> items = new ArrayList<>();
 

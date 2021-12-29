@@ -10,6 +10,7 @@ import java.util.List;
 @EqualsAndHashCode(callSuper = true)
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class CardList extends Resource {
+
     String name;
     List<Card> cards = new ArrayList<>();
     Boolean active = true;
@@ -18,7 +19,7 @@ public class CardList extends Resource {
         this.name = name;
     }
 
-    public void addCards(Card card) {
+    public void addCard(Card card) {
         cards.add(card);
     }
 }

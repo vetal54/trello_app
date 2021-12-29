@@ -8,6 +8,7 @@ import lombok.experimental.FieldDefaults;
 @EqualsAndHashCode(callSuper = true)
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class BoardTemplate extends Domain{
+
     String name;
 
     public BoardTemplate(String name) {

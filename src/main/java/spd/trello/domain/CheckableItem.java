@@ -8,6 +8,7 @@ import lombok.experimental.FieldDefaults;
 @EqualsAndHashCode(callSuper = true)
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class CheckableItem extends Domain {
+
     String name;
     Boolean checked;
 

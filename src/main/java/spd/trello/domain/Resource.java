@@ -10,6 +10,7 @@ import java.time.LocalDateTime;
 @EqualsAndHashCode(callSuper = true)
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public abstract class Resource extends Domain {
+
     String createBy;
     String updateBy;
     LocalDateTime createDate = LocalDateTime.now();

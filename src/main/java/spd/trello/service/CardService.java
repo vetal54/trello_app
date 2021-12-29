@@ -12,9 +12,10 @@ public class CardService extends AbstractService<Card> {
         Card card = new Card();
         Scanner scanner = new Scanner(System.in);
         System.out.println("Enter card name:");
-        card.setName(scanner.next());
+        card.setName(scanner.nextLine());
         System.out.println("Enter the email of the user who created the card:");
-        card.setCreateBy(scanner.next());
+        card.setCreateBy(scanner.nextLine());
+        print(card);
         return card;
     }
 

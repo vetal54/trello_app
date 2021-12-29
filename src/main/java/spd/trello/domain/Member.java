@@ -8,6 +8,7 @@ import lombok.experimental.FieldDefaults;
 @EqualsAndHashCode(callSuper = true)
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class Member extends Domain {
+
     User user;
     Role role;
 

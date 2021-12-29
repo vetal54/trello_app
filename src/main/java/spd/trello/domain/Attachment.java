@@ -10,6 +10,7 @@ import java.io.File;
 @EqualsAndHashCode(callSuper = true)
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class Attachment extends Resource {
+
     String link;
     String name;
     File file;

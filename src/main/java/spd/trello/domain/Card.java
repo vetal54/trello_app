@@ -11,6 +11,7 @@ import java.util.List;
 @EqualsAndHashCode(callSuper = true)
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class Card extends Resource {
+
     String name;
     String description;
     List<Member> assignedMembers = new ArrayList<>();

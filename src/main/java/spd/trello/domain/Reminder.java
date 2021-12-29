@@ -9,6 +9,7 @@ import java.time.LocalDateTime;
 @EqualsAndHashCode(callSuper = true)
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class Reminder extends Resource {
+
     LocalDateTime start;
     LocalDateTime end;
     LocalDateTime remindOn;
