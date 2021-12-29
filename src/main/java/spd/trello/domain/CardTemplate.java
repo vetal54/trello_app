@@ -9,8 +9,4 @@ import lombok.experimental.FieldDefaults;
 public class CardTemplate {
 
     String title;
-
-    public CardTemplate(String title) {
-        this.title = title;
-    }
 }

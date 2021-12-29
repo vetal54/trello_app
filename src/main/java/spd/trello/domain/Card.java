@@ -2,9 +2,9 @@ package spd.trello.domain;
 
 import lombok.*;
 import lombok.experimental.FieldDefaults;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @Data
 @NoArgsConstructor
@@ -21,6 +21,7 @@ public class Card extends Resource {
     List<Comment> comments = new ArrayList<>();
     Reminder reminder;
     List<CheckList> checkList = new ArrayList<>();
+    UUID cardList_id;
 
     public Card(String name) {
         this.name = name;
@@ -48,9 +49,6 @@ public class Card extends Resource {
 
     @Override
     public String toString() {
-        return name + ", "
-                + "id: " + getId()
-                + ", time: " + getCreateDate().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"))
-                + "\n";
+        return name + ", id: " + getId();
     }
 }

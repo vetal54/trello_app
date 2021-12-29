@@ -4,6 +4,7 @@ import lombok.*;
 import lombok.experimental.FieldDefaults;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @Data
 @NoArgsConstructor
@@ -20,5 +21,10 @@ public class CheckList extends Resource {
 
     public void addItems(CheckableItem item) {
         items.add(item);
+    }
+
+    @Override
+    public String toString(){
+        return name + ", id: " +getId();
     }
 }

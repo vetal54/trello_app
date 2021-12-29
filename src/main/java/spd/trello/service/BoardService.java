@@ -1,11 +1,20 @@
 package spd.trello.service;
 
+import lombok.RequiredArgsConstructor;
 import spd.trello.domain.Board;
-import spd.trello.domain.User;
+import spd.trello.repository.BoardRepositoryImpl;
+import spd.trello.repository.IRepository;
 
+import java.util.List;
+import java.util.Optional;
 import java.util.Scanner;
+import java.util.UUID;
 
 public class BoardService extends AbstractService<Board> {
+
+    public BoardService(BoardRepositoryImpl repository) {
+        super(repository);
+    }
 
     @Override
     public Board create() {
@@ -16,11 +25,34 @@ public class BoardService extends AbstractService<Board> {
         System.out.println("Enter the email of the user who created the board:");
         board.setCreateBy(scanner.nextLine());
         print(board);
+        repository.create(board);
         return board;
+                //repository.getById(board.getId());
     }
 
     @Override
     public void print(Board board) {
         System.out.println(board);
+    }
+
+    @Override
+    public void update(Board board) {
+        repository.update(board);
+    }
+
+    @Override
+    public Optional<Board> findById(UUID id) {
+        return Optional.ofNullable(repository.getById(id)
+                .orElseThrow(() -> new IllegalStateException("Board not found")));
+    }
+
+    @Override
+    public List<Board> findAll() {
+       return repository.getAll();
+    }
+
+    @Override
+    public boolean delete(UUID id) {
+        return repository.delete(id);
     }
 }

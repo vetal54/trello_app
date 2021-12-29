@@ -4,6 +4,7 @@ import lombok.*;
 import lombok.experimental.FieldDefaults;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @Data
 @NoArgsConstructor
@@ -14,12 +15,19 @@ public class CardList extends Resource {
     String name;
     List<Card> cards = new ArrayList<>();
     Boolean active = true;
+    UUID board_id;
 
     public CardList(String name) {
         this.name = name;
     }
 
     public void addCard(Card card) {
+        card.setCardList_id(this.getId());
         cards.add(card);
+    }
+
+    @Override
+    public String toString() {
+        return name + ", id: " + getId();
     }
 }

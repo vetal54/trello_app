@@ -28,6 +28,7 @@ public class Board extends Resource {
     }
 
     public void addCardLists(CardList cardList) {
+        cardList.setBoard_id(this.getId());
         cardLists.add(cardList);
     }
 
@@ -37,9 +38,6 @@ public class Board extends Resource {
 
     @Override
     public String toString() {
-        return name + ", "
-                + "id: " + getId()
-                + ", time: " + getCreateDate().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"))
-                + "\n";
+        return "\n" + name + ", id: " + getId();
     }
 }

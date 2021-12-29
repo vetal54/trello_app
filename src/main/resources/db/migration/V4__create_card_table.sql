@@ -3,6 +3,9 @@ CREATE TABLE card (
     name VARCHAR(255) NOT NULL,
     description VARCHAR(255) NOT NULL,
     active BOOLEAN NOT NULL,
-    cardList UUID NOT NULL,
+    create_by UUID,
+    update_by UUID,
+    create_date TIMESTAMP,
+    update_date TIMESTAMP,
     cardList_id UUID CONSTRAINT card_details_id_fk REFERENCES "card_list" (id)
 );
