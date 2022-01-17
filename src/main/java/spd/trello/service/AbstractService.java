@@ -17,7 +17,7 @@ public abstract class AbstractService<T extends Resource> {
 
     abstract void update(T e);
 
-    abstract Optional<T> findById(UUID id);
+    abstract T findById(UUID id);
 
     abstract List<T> findAll();
 

@@ -28,9 +28,8 @@ public class ReminderRepositoryImpl implements IRepository<Reminder> {
             ps.setTimestamp(3, Timestamp.valueOf(reminder.getEnd()));
             ps.setTimestamp(4, Timestamp.valueOf(reminder.getRemindOn()));
             ps.setBoolean(5, reminder.getActive());
-            ps.setObject(6, reminder.getCardID());
+            ps.setObject(6, reminder.getCardId());
             ps.executeUpdate();
-            System.out.println("A new reminder added to the database");
         } catch (SQLException e) {
             throw new IllegalStateException("Reminder creation failed", e);
         }
@@ -49,13 +48,13 @@ public class ReminderRepositoryImpl implements IRepository<Reminder> {
     }
 
     @Override
-    public Optional<Reminder> getById(UUID id) {
+    public Reminder getById(UUID id) {
         try (Connection con = ds.getConnection();
              PreparedStatement stmt = con.prepareStatement(FIND_BY_ID)) {
             stmt.setObject(1, id);
             ResultSet resultSet = stmt.executeQuery();
             if (resultSet.next()) {
-                return Optional.of(map(resultSet));
+                return map(resultSet);
             }
         } catch (SQLException e) {
             throw new IllegalStateException("Reminder::findReminderById failed", e);
@@ -81,7 +80,7 @@ public class ReminderRepositoryImpl implements IRepository<Reminder> {
 
     @Override
     public boolean delete(UUID id) {
-        if (getById(id).isEmpty()) {
+        if (getById(id) == null) {
             return false;
         }
         try (Connection con = ds.getConnection();
@@ -101,7 +100,7 @@ public class ReminderRepositoryImpl implements IRepository<Reminder> {
         reminder.setEnd(LocalDateTime.parse(rs.getTimestamp("endOn").toLocalDateTime().toString()));
         reminder.setRemindOn(LocalDateTime.parse(rs.getTimestamp("remindOn").toLocalDateTime().toString()));
         reminder.setActive(rs.getBoolean("active"));
-        reminder.setCardID(UUID.fromString(rs.getString("card_id")));
+        reminder.setCardId(UUID.fromString(rs.getString("card_id")));
         return reminder;
     }
 }

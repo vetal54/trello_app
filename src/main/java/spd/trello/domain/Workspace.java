@@ -11,7 +11,6 @@ import java.util.List;
 @EqualsAndHashCode(callSuper = true)
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class Workspace extends Resource {
-
     String name;
     List<Board> boards = new ArrayList<>();
     List<Member> members = new ArrayList<>();
@@ -24,7 +23,7 @@ public class Workspace extends Resource {
     }
 
     public void addBoard(Board board) {
-        board.setWorkspace_id(this.getId());
+        board.setWorkspaceId(this.getId());
         boards.add(board);
     }
 

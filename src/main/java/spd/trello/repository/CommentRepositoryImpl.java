@@ -29,9 +29,8 @@ public class CommentRepositoryImpl implements IRepository<Comment> {
              PreparedStatement ps = conn.prepareStatement(CREATE)) {
             ps.setObject(1, comment.getId());
             ps.setString(2, comment.getText());
-            ps.setObject(3, comment.getCardID());
+            ps.setObject(3, comment.getCardId());
             ps.executeUpdate();
-            System.out.println("A new comment added to the database");
         } catch (SQLException e) {
             throw new IllegalStateException("Comment creation failed", e);
         }
@@ -50,13 +49,13 @@ public class CommentRepositoryImpl implements IRepository<Comment> {
     }
 
     @Override
-    public Optional<Comment> getById(UUID id) {
+    public Comment getById(UUID id) {
         try (Connection con = ds.getConnection();
              PreparedStatement stmt = con.prepareStatement(FIND_BY_ID)) {
             stmt.setObject(1, id);
             ResultSet resultSet = stmt.executeQuery();
             if (resultSet.next()) {
-                return Optional.of(map(resultSet));
+                return map(resultSet);
             }
         } catch (SQLException e) {
             throw new IllegalStateException("Comment::findCommentById failed", e);
@@ -82,7 +81,7 @@ public class CommentRepositoryImpl implements IRepository<Comment> {
 
     @Override
     public boolean delete(UUID id) {
-        if (getById(id).isEmpty()) {
+        if (getById(id) == null) {
             return false;
         }
         try (Connection con = ds.getConnection();

@@ -1,58 +1,55 @@
 package spd.trello.service;
 
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import spd.trello.domain.CardList;
 import spd.trello.repository.CardListRepositoryImpl;
 
-import java.util.Collections;
-import java.util.Optional;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class CardListServiceTest extends BaseTest {
 
-    private CardList cardList;
+    private static CardList cardList;
     private final CardListService service;
 
     public CardListServiceTest() {
         service = new CardListService(new CardListRepositoryImpl(dataSource));
     }
 
-    @BeforeEach
-    void create() {
+    @BeforeAll
+    static void create() {
         cardList = new CardList("cardListName");
-        cardList.setBoard_id(UUID.fromString("5d9b85ab-d110-4e5d-a176-5ec2c716e3e7"));
-    }
-
-    @Test
-    void createCardList() {
-        assertNotNull(cardList);
-        assertAll(
-                () -> assertNotNull(cardList.getCreateDate()),
-                () -> assertNull(cardList.getUpdateDate()),
-                () -> assertEquals("cardListName", cardList.getName()),
-                () -> assertEquals(Collections.emptyList() , cardList.getCards()),
-                () -> assertTrue(cardList.getActive())
-        );
+        cardList.setBoardId(UUID.fromString("5d9b85ab-d110-4e5d-a176-5ec2c716e3e7"));
     }
 
     @Test
     void printCardList() {
-        assertEquals(cardList.getName() + ", id: " +  cardList.getId(), cardList.toString());
+        assertEquals(cardList.getName() + ", id: " + cardList.getId(), cardList.toString());
     }
 
     @Test
     void testSave() {
         service.repository.create(cardList);
-        Optional<CardList> byId = service.findById(cardList.getId());
+        CardList byId = service.findById(cardList.getId());
         assertNotNull(byId);
+
+        assertAll(
+                () -> assertEquals(cardList.getName(), byId.getName()),
+                () -> assertEquals(cardList.getBoardId(), byId.getBoardId())
+        );
     }
 
     @Test
     void testFindById() {
+        CardList findCardList = service.findById(cardList.getId());
+        assertEquals(findCardList.getName(), cardList.getName());
+    }
+
+    @Test
+    void testFindByIdFailed() {
         UUID uuid = UUID.randomUUID();
         IllegalStateException ex = assertThrows(
                 IllegalStateException.class,
@@ -62,9 +59,23 @@ class CardListServiceTest extends BaseTest {
         assertEquals("CardList with ID: " + uuid + " doesn't exists", ex.getMessage());
     }
 
+    @Test
+    void testUpdate() {
+        service.repository.create(cardList);
+        cardList.setName("it`s update cardList");
+        service.update(cardList);
+        CardList startCardList = service.findById(cardList.getId());
+        assertEquals(cardList.getName(), startCardList.getName());
+    }
 
     @Test
     void testDelete() {
+        boolean bool = service.delete(cardList.getId());
+        assertTrue(bool);
+    }
+
+    @Test
+    void testDeleteFailed() {
         UUID uuid = UUID.randomUUID();
         IllegalStateException ex = assertThrows(
                 IllegalStateException.class,
@@ -72,14 +83,5 @@ class CardListServiceTest extends BaseTest {
                 "CardList::findCardListById failed"
         );
         assertEquals("CardList with ID: " + uuid + " doesn't exists", ex.getMessage());
-    }
-
-    @Test
-    void testUpdate() {
-        service.repository.create(cardList);
-        cardList.setName("it`s update cardList");
-        service.update(cardList);
-        Optional<CardList> startCardList = service.findById(cardList.getId());
-        assertEquals("it`s update cardList", startCardList.get().getName());
     }
 }

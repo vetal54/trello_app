@@ -1,11 +1,10 @@
 package spd.trello.domain;
 
 public enum WorkspaceVisibility {
-
     PRIVATE("PRIVATE"),
     PUBLIC("PUBLIC");
 
-    private String title;
+    private final String title;
 
     WorkspaceVisibility(String title) {
         this.title = title;

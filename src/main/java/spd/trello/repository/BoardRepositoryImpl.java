@@ -27,9 +27,8 @@ public class BoardRepositoryImpl implements IRepository<Board> {
              PreparedStatement ps = conn.prepareStatement(CREATE)) {
             ps.setObject(1, board.getId());
             ps.setString(2, board.getName());
-            ps.setObject(3, board.getWorkspace_id());
+            ps.setObject(3, board.getWorkspaceId());
             ps.executeUpdate();
-            System.out.println("A new board added to the database");
         } catch (SQLException e) {
             throw new IllegalStateException("Board creation failed", e);
         }
@@ -48,13 +47,13 @@ public class BoardRepositoryImpl implements IRepository<Board> {
     }
 
     @Override
-    public Optional<Board> getById(UUID id) throws IllegalStateException {
+    public Board getById(UUID id) throws IllegalStateException {
         try (Connection con = ds.getConnection();
              PreparedStatement stmt = con.prepareStatement(FIND_BY_ID)) {
             stmt.setObject(1, id);
             ResultSet resultSet = stmt.executeQuery();
             if (resultSet.next()) {
-                return Optional.of(map(resultSet));
+                return map(resultSet);
             }
         } catch (SQLException e) {
             throw new IllegalStateException("Board::findBoardById failed", e);
@@ -80,7 +79,7 @@ public class BoardRepositoryImpl implements IRepository<Board> {
 
     @Override
     public boolean delete(UUID id) {
-        if (getById(id).isEmpty()) {
+        if (getById(id) == null) {
             return false;
         }
         try (Connection con = ds.getConnection();
@@ -97,7 +96,7 @@ public class BoardRepositoryImpl implements IRepository<Board> {
         Board board = new Board();
         board.setId(UUID.fromString(rs.getString("id")));
         board.setName(rs.getString("name"));
-        board.setWorkspace_id(UUID.fromString(rs.getString("workspace_id")));
+        board.setWorkspaceId(UUID.fromString(rs.getString("workspace_id")));
         return board;
     }
 }

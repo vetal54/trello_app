@@ -31,9 +31,8 @@ public class CardRepositoryImpl implements IRepository<Card> {
             ps.setString(2, card.getName());
             ps.setString(3, card.getDescription());
             ps.setBoolean(4, card.getActive());
-            ps.setObject(5, card.getCardList_id());
+            ps.setObject(5, card.getCardListId());
             ps.executeUpdate();
-            System.out.println("A new card added to the database");
         } catch (SQLException e) {
             throw new IllegalStateException("Card creation failed", e);
         }
@@ -52,13 +51,13 @@ public class CardRepositoryImpl implements IRepository<Card> {
     }
 
     @Override
-    public Optional<Card> getById(UUID id) {
+    public Card getById(UUID id) {
         try (Connection con = ds.getConnection();
              PreparedStatement stmt = con.prepareStatement(FIND_BY_ID)) {
             stmt.setObject(1, id);
             ResultSet resultSet = stmt.executeQuery();
             if (resultSet.next()) {
-                return Optional.of(map(resultSet));
+                return map(resultSet);
             }
         } catch (SQLException e) {
             throw new IllegalStateException("Card::findCardById failed", e);
@@ -84,7 +83,7 @@ public class CardRepositoryImpl implements IRepository<Card> {
 
     @Override
     public boolean delete(UUID id) {
-        if (getById(id).isEmpty()) {
+        if (getById(id) == null) {
             return false;
         }
         try (Connection con = ds.getConnection();
@@ -103,7 +102,7 @@ public class CardRepositoryImpl implements IRepository<Card> {
         card.setName(rs.getString("name"));
         card.setDescription(rs.getString("description"));
         card.setActive(rs.getBoolean("active"));
-        card.setCardList_id(UUID.fromString(rs.getString("cardList_id")));
+        card.setCardListId(UUID.fromString(rs.getString("cardList_id")));
         return card;
     }
 }

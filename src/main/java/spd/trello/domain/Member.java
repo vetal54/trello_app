@@ -10,10 +10,9 @@ import java.util.UUID;
 @EqualsAndHashCode(callSuper = true)
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class Member extends Domain {
-
     User user;
     Role role;
-    UUID board_id;
+    UUID boardId;
 
     public Member(User user, Role role) {
         this.user = user;

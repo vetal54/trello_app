@@ -38,9 +38,8 @@ public class CommentService extends AbstractService<Comment> {
     }
 
     @Override
-    public Optional<Comment> findById(UUID id) {
-        return Optional.ofNullable(repository.getById(id))
-                .orElseThrow(() -> new IllegalStateException("Comment not found"));
+    public Comment findById(UUID id) {
+        return repository.getById(id);
     }
 
     @Override

@@ -23,6 +23,7 @@ public abstract class BaseTest {
         cfg.setJdbcUrl(properties.getProperty("jdbc.url"));
         cfg.setUsername(properties.getProperty("jdbc.username"));
         cfg.setPassword(properties.getProperty("jdbc.password"));
+        cfg.setDriverClassName("org.postgresql.Driver");
 
         int maxConnection = Integer.parseInt(properties.getProperty("jdbc.pool.maxConnection"));
         cfg.setMaximumPoolSize(maxConnection);
@@ -37,7 +38,7 @@ public abstract class BaseTest {
 
     private static Properties loadProperties() throws IOException {
         InputStream in = ConnectionToDB.class.getClassLoader()
-                .getResourceAsStream("application.properties");
+                .getResourceAsStream("testApplication.properties");
 
         Properties properties = new Properties();
         properties.load(in);

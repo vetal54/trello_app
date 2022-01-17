@@ -30,11 +30,10 @@ public class CardListRepositoryImpl implements IRepository<CardList> {
             ps.setObject(1, cardList.getId());
             ps.setString(2, cardList.getName());
             ps.setBoolean(3, cardList.getActive());
-            ps.setObject(4, cardList.getBoard_id());
+            ps.setObject(4, cardList.getBoardId());
             ps.executeUpdate();
-            System.out.println("A new board added to the database");
         } catch (SQLException e) {
-            throw new IllegalStateException("Board creation failed", e);
+            throw new IllegalStateException("CardList creation failed", e);
         }
     }
 
@@ -51,13 +50,13 @@ public class CardListRepositoryImpl implements IRepository<CardList> {
     }
 
     @Override
-    public Optional<CardList> getById(UUID id) {
+    public CardList getById(UUID id) {
         try (Connection con = ds.getConnection();
              PreparedStatement stmt = con.prepareStatement(FIND_BY_ID)) {
             stmt.setObject(1, id);
             ResultSet resultSet = stmt.executeQuery();
             if (resultSet.next()) {
-                return Optional.of(map(resultSet));
+                return map(resultSet);
             }
         } catch (SQLException e) {
             throw new IllegalStateException("CardList::findCardListById failed", e);
@@ -83,7 +82,7 @@ public class CardListRepositoryImpl implements IRepository<CardList> {
 
     @Override
     public boolean delete(UUID id) {
-        if (getById(id).isEmpty()) {
+        if (getById(id) == null) {
             return false;
         }
         try (Connection con = ds.getConnection();
@@ -101,7 +100,7 @@ public class CardListRepositoryImpl implements IRepository<CardList> {
         cardList.setId(UUID.fromString(rs.getString("id")));
         cardList.setName(rs.getString("name"));
         cardList.setActive(rs.getBoolean("active"));
-        cardList.setBoard_id(UUID.fromString(rs.getString("board_id")));
+        cardList.setBoardId(UUID.fromString(rs.getString("board_id")));
         return cardList;
     }
 }

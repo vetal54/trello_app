@@ -1,7 +1,6 @@
 package spd.trello.repository;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 public interface IRepository<E> {
@@ -9,7 +8,7 @@ public interface IRepository<E> {
 
     void update(E e);
 
-    Optional<E> getById(UUID id);
+    E getById(UUID id);
 
     List<E> getAll();
 

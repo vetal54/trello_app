@@ -1,9 +1,7 @@
 package spd.trello;
 
 import org.flywaydb.core.Flyway;
-import spd.trello.domain.Workspace;
 import spd.trello.repository.*;
-import spd.trello.service.*;
 
 import javax.sql.DataSource;
 import java.io.IOException;

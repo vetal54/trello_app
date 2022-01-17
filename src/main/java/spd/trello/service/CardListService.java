@@ -4,7 +4,6 @@ import spd.trello.domain.CardList;
 import spd.trello.repository.CardListRepositoryImpl;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.Scanner;
 import java.util.UUID;
 
@@ -22,7 +21,7 @@ public class CardListService extends AbstractService<CardList> {
         cardList.setName(scanner.nextLine());
         print(cardList);
         repository.create(cardList);
-        return cardList;
+        return repository.getById(cardList.getId());
     }
 
     @Override
@@ -36,9 +35,8 @@ public class CardListService extends AbstractService<CardList> {
     }
 
     @Override
-    Optional<CardList> findById(UUID id) {
-        return Optional.ofNullable(repository.getById(id))
-                .orElseThrow(() -> new IllegalStateException("CardList not found"));
+    CardList findById(UUID id) {
+        return repository.getById(id);
     }
 
     @Override

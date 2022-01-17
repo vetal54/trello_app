@@ -2,6 +2,7 @@ package spd.trello.domain;
 
 import lombok.*;
 import lombok.experimental.FieldDefaults;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -11,18 +12,17 @@ import java.util.UUID;
 @EqualsAndHashCode(callSuper = true)
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class CardList extends Resource {
-
     String name;
     List<Card> cards = new ArrayList<>();
     Boolean active = true;
-    UUID board_id;
+    UUID boardId;
 
     public CardList(String name) {
         this.name = name;
     }
 
     public void addCard(Card card) {
-        card.setCardList_id(this.getId());
+        card.setCardListId(this.getId());
         cards.add(card);
     }
 

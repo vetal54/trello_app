@@ -3,7 +3,6 @@ package spd.trello.domain;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
-import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.UUID;
@@ -13,12 +12,11 @@ import java.util.UUID;
 @EqualsAndHashCode(callSuper = true)
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class Reminder extends Resource {
-
     LocalDateTime start;
     LocalDateTime end;
     LocalDateTime remindOn;
     Boolean active = true;
-    UUID cardID;
+    UUID cardId;
 
     public Reminder(LocalDateTime start, LocalDateTime end, LocalDateTime remindOn) {
         this.start = start;

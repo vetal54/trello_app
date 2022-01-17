@@ -36,9 +36,8 @@ public class CheckListService extends AbstractService<CheckList> {
     }
 
     @Override
-    public Optional<CheckList> findById(UUID id) {
-        return Optional.ofNullable(repository.getById(id))
-                .orElseThrow(() -> new IllegalStateException("Card not found"));
+    public CheckList findById(UUID id) {
+        return repository.getById(id);
     }
 
     @Override

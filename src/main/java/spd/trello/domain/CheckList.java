@@ -2,16 +2,15 @@ package spd.trello.domain;
 
 import lombok.*;
 import lombok.experimental.FieldDefaults;
+
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 @Data
 @NoArgsConstructor
 @EqualsAndHashCode(callSuper = true)
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class CheckList extends Resource {
-
     String name;
     List<CheckableItem> items = new ArrayList<>();
 
@@ -24,7 +23,7 @@ public class CheckList extends Resource {
     }
 
     @Override
-    public String toString(){
-        return name + ", id: " +getId();
+    public String toString() {
+        return name + ", id: " + getId();
     }
 }

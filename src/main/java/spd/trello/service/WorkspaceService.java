@@ -43,9 +43,8 @@ public class WorkspaceService extends AbstractService<Workspace> {
     }
 
     @Override
-    public Optional<Workspace> findById(UUID id) {
-        return Optional.ofNullable(repository.getById(id))
-                .orElseThrow(() -> new IllegalStateException("Workspace not found"));
+    public Workspace findById(UUID id) {
+        return repository.getById(id);
     }
 
     @Override

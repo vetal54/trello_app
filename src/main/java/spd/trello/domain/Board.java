@@ -3,7 +3,6 @@ package spd.trello.domain;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -13,14 +12,13 @@ import java.util.UUID;
 @EqualsAndHashCode(callSuper = true)
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class Board extends Resource {
-
     String name;
     String description;
     List<CardList> cardLists = new ArrayList<>();
     List<Member> members = new ArrayList<>();
     BoardVisibility visibility;
     Boolean active = true;
-    UUID workspace_id;
+    UUID workspaceId;
 
     public Board(String name, BoardVisibility visibility) {
         this.name = name;
@@ -28,7 +26,7 @@ public class Board extends Resource {
     }
 
     public void addCardLists(CardList cardList) {
-        cardList.setBoard_id(this.getId());
+        cardList.setBoardId(this.getId());
         cardLists.add(cardList);
     }
 

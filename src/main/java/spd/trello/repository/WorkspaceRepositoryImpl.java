@@ -54,13 +54,13 @@ public class WorkspaceRepositoryImpl implements IRepository<Workspace> {
     }
 
     @Override
-    public Optional<Workspace> getById(UUID id) {
+    public Workspace getById(UUID id) {
         try (Connection con = ds.getConnection();
              PreparedStatement stmt = con.prepareStatement(FIND_BY_ID)) {
             stmt.setObject(1, id);
             ResultSet resultSet = stmt.executeQuery();
             if (resultSet.next()) {
-                return Optional.of(map(resultSet));
+                return map(resultSet);
             }
         } catch (SQLException e) {
             throw new IllegalStateException("Workspace::findWorkspaceById failed", e);
@@ -86,7 +86,7 @@ public class WorkspaceRepositoryImpl implements IRepository<Workspace> {
 
     @Override
     public boolean delete(UUID id) {
-        if (getById(id).isEmpty()) {
+        if (getById(id) == null) {
             return false;
         }
         try (Connection con = ds.getConnection();

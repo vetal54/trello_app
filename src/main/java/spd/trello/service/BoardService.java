@@ -1,12 +1,9 @@
 package spd.trello.service;
 
-import lombok.RequiredArgsConstructor;
 import spd.trello.domain.Board;
 import spd.trello.repository.BoardRepositoryImpl;
-import spd.trello.repository.IRepository;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.Scanner;
 import java.util.UUID;
 
@@ -41,9 +38,8 @@ public class BoardService extends AbstractService<Board> {
     }
 
     @Override
-    public Optional<Board> findById(UUID id) {
-        return Optional.ofNullable(repository.getById(id)
-                .orElseThrow(() -> new IllegalStateException("Board not found")));
+    public Board findById(UUID id) {
+        return repository.getById(id);
     }
 
     @Override

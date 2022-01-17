@@ -1,6 +1,5 @@
 package spd.trello.repository;
 
-import spd.trello.domain.Card;
 import spd.trello.domain.CheckList;
 
 import javax.sql.DataSource;
@@ -32,7 +31,6 @@ public class CheckListRepositoryImpl implements IRepository<CheckList> {
             ps.setString(2, checkList.getName());
             // ps.setObject(5, checkList.getCardList_id());
             ps.executeUpdate();
-            System.out.println("A new checkList added to the database");
         } catch (SQLException e) {
             throw new IllegalStateException("CheckList creation failed", e);
         }
@@ -51,13 +49,13 @@ public class CheckListRepositoryImpl implements IRepository<CheckList> {
     }
 
     @Override
-    public Optional<CheckList> getById(UUID id) {
+    public CheckList getById(UUID id) {
         try (Connection con = ds.getConnection();
              PreparedStatement stmt = con.prepareStatement(FIND_BY_ID)) {
             stmt.setObject(1, id);
             ResultSet resultSet = stmt.executeQuery();
             if (resultSet.next()) {
-                return Optional.of(map(resultSet));
+                return map(resultSet);
             }
         } catch (SQLException e) {
             throw new IllegalStateException("CheckList::findCheckListById failed", e);
@@ -83,7 +81,7 @@ public class CheckListRepositoryImpl implements IRepository<CheckList> {
 
     @Override
     public boolean delete(UUID id) {
-        if (getById(id).isEmpty()) {
+        if (getById(id) == null) {
             return false;
         }
         try (Connection con = ds.getConnection();

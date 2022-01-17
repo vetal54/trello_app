@@ -32,9 +32,8 @@ public class ReminderService extends AbstractService<Reminder> {
     }
 
     @Override
-    public Optional<Reminder> findById(UUID id) {
-        return Optional.ofNullable(repository.getById(id))
-                .orElseThrow(() -> new IllegalStateException("Reminder not found"));
+    public Reminder findById(UUID id) {
+        return repository.getById(id);
     }
 
     @Override

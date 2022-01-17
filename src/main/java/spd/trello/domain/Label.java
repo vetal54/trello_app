@@ -8,7 +8,6 @@ import lombok.experimental.FieldDefaults;
 @EqualsAndHashCode(callSuper = true)
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class Label extends Domain {
-
     String name;
     String color;
 

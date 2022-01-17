@@ -2,6 +2,7 @@ package spd.trello.domain;
 
 import lombok.*;
 import lombok.experimental.FieldDefaults;
+
 import java.util.TimeZone;
 import java.util.UUID;
 
@@ -10,12 +11,11 @@ import java.util.UUID;
 @EqualsAndHashCode(callSuper = true)
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class User extends Domain {
-
     String firstName;
     String lastName;
     String email;
     TimeZone timeZone;
-    UUID workspace_id;
+    UUID workspaceId;
 
     public User(String firstName, String lastName, String email, TimeZone timeZone) {
         this.firstName = firstName;

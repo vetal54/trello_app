@@ -38,9 +38,8 @@ public class CardService extends AbstractService<Card> {
     }
 
     @Override
-    public Optional<Card> findById(UUID id) {
-        return Optional.ofNullable(repository.getById(id))
-                .orElseThrow(() -> new IllegalStateException("Card not found"));
+    public Card findById(UUID id) {
+        return repository.getById(id);
     }
 
     @Override
