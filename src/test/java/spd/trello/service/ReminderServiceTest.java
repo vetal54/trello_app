@@ -2,7 +2,9 @@ package spd.trello.service;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import spd.trello.domain.Card;
 import spd.trello.domain.Reminder;
+import spd.trello.repository.CardRepositoryImpl;
 import spd.trello.repository.ReminderRepositoryImpl;
 
 import java.time.LocalDateTime;
@@ -22,11 +24,15 @@ class ReminderServiceTest extends BaseTest {
 
     @BeforeAll
     static void create() {
+        Card card = new Card("CardName");
+        card.setDescription("New year 2022");
+        CardService cs = new CardService(new CardRepositoryImpl(dataSource));
+        cs.repository.create(card);
         reminder = new Reminder();
         reminder.setStart(LocalDateTime.now());
         reminder.setEnd(LocalDateTime.of(2022, 9, 19, 14, 5, 20));
         reminder.setRemindOn(LocalDateTime.of(2022, 9, 15, 10, 0, 0));
-        reminder.setCardId(UUID.fromString("dd81005f-67fa-4060-af1f-56487389cccd"));
+        reminder.setCardId(card.getId());
     }
 
     @Test

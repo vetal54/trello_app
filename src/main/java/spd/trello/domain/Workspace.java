@@ -17,8 +17,9 @@ public class Workspace extends Resource {
     String description;
     WorkspaceVisibility visibility;
 
-    public Workspace(String name, WorkspaceVisibility visibility) {
+    public Workspace(String name, String description, WorkspaceVisibility visibility) {
         this.name = name;
+        this.description = description;
         this.visibility = visibility;
     }
 

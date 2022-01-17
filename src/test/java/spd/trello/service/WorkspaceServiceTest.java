@@ -21,8 +21,7 @@ class WorkspaceServiceTest extends BaseTest {
 
     @BeforeAll
     static void create() {
-        workspace = new Workspace("workspaceName", WorkspaceVisibility.PUBLIC);
-        workspace.setDescription("New year 2022");
+        workspace = new Workspace("workspaceName", "New year 2022",WorkspaceVisibility.PUBLIC);
     }
 
     @Test

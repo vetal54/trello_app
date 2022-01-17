@@ -4,7 +4,10 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import spd.trello.domain.Board;
 import spd.trello.domain.BoardVisibility;
+import spd.trello.domain.Workspace;
+import spd.trello.domain.WorkspaceVisibility;
 import spd.trello.repository.BoardRepositoryImpl;
+import spd.trello.repository.WorkspaceRepositoryImpl;
 
 import java.util.UUID;
 
@@ -20,9 +23,11 @@ class BoardServiceTest extends BaseTest {
 
     @BeforeAll
     static void create() {
-        board = new Board("boardName", BoardVisibility.PRIVATE);
-        board.setDescription("new Board");
-        board.setWorkspaceId(UUID.fromString("eb3709a6-15d4-4759-a4e6-29204803b69d"));
+        Workspace workspace = new Workspace("workspaceName", "New year 2022", WorkspaceVisibility.PUBLIC);
+        WorkspaceService ws = new WorkspaceService(new WorkspaceRepositoryImpl(dataSource));
+        ws.repository.create(workspace);
+        board = new Board("boardName", "new Board", BoardVisibility.PRIVATE);
+        board.setWorkspaceId(workspace.getId());
     }
 
     @Test

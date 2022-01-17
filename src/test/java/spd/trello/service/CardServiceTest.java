@@ -3,6 +3,8 @@ package spd.trello.service;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import spd.trello.domain.Card;
+import spd.trello.domain.CardList;
+import spd.trello.repository.CardListRepositoryImpl;
 import spd.trello.repository.CardRepositoryImpl;
 
 import java.util.UUID;
@@ -20,9 +22,12 @@ class CardServiceTest extends BaseTest {
 
     @BeforeAll
     static void create() {
+        CardList cardList = new CardList("new CardList");
+        CardListService cls = new CardListService(new CardListRepositoryImpl(dataSource));
+        cls.repository.create(cardList);
         card = new Card("cardName");
         card.setDescription("New year 2022");
-        card.setCardListId(UUID.fromString("5ca1d56a-84e6-4245-a8dd-f4477da538bf"));
+        card.setCardListId(cardList.getId());
     }
 
     @Test

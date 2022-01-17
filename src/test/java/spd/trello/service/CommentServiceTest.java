@@ -2,7 +2,9 @@ package spd.trello.service;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import spd.trello.domain.Card;
 import spd.trello.domain.Comment;
+import spd.trello.repository.CardRepositoryImpl;
 import spd.trello.repository.CommentRepositoryImpl;
 
 import java.util.UUID;
@@ -20,9 +22,13 @@ class CommentServiceTest extends BaseTest {
 
     @BeforeAll
     static void create() {
+        Card card = new Card("CardName");
+        card.setDescription("New year 2022");
+        CardService cs = new CardService(new CardRepositoryImpl(dataSource));
+        cs.repository.create(card);
         comment = new Comment();
         comment.setText("comment");
-        comment.setCardId(UUID.fromString("dd81005f-67fa-4060-af1f-56487389cccd"));
+        comment.setCardId(card.getId());
     }
 
     @Test

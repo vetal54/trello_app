@@ -3,7 +3,10 @@ package spd.trello.service;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
+import spd.trello.domain.Board;
+import spd.trello.domain.BoardVisibility;
 import spd.trello.domain.CardList;
+import spd.trello.repository.BoardRepositoryImpl;
 import spd.trello.repository.CardListRepositoryImpl;
 
 import java.util.UUID;
@@ -21,8 +24,11 @@ class CardListServiceTest extends BaseTest {
 
     @BeforeAll
     static void create() {
+        Board board = new Board("board", "new Board", BoardVisibility.PRIVATE);
+        BoardService bs = new BoardService(new BoardRepositoryImpl(dataSource));
+        bs.repository.create(board);
         cardList = new CardList("cardListName");
-        cardList.setBoardId(UUID.fromString("5d9b85ab-d110-4e5d-a176-5ec2c716e3e7"));
+        cardList.setBoardId(board.getId());
     }
 
     @Test

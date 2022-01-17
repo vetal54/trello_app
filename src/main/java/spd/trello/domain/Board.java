@@ -20,8 +20,9 @@ public class Board extends Resource {
     Boolean active = true;
     UUID workspaceId;
 
-    public Board(String name, BoardVisibility visibility) {
+    public Board(String name, String description, BoardVisibility visibility) {
         this.name = name;
+        this.description = description;
         this.visibility = visibility;
     }
 
