@@ -1,17 +1,22 @@
-package spd.trello.repository;
+package spd.trello.configuration;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
 
 import javax.sql.DataSource;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
 
-public class ConnectionToDB {
+@Configuration
+@ComponentScan(basePackages = {"spd.trello.repository", "spd.trello.service"})
+public class Config {
 
     private static Properties loadProperties() throws IOException {
-        InputStream in = ConnectionToDB.class.getClassLoader()
+        InputStream in = Config.class.getClassLoader()
                 .getResourceAsStream("application.properties");
 
         Properties properties = new Properties();
@@ -19,6 +24,7 @@ public class ConnectionToDB {
         return properties;
     }
 
+    @Bean
     public DataSource createDataSource() throws IOException {
         Properties properties = loadProperties();
 

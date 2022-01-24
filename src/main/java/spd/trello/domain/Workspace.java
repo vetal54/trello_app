@@ -34,6 +34,6 @@ public class Workspace extends Resource {
 
     @Override
     public String toString() {
-        return "\n" + name + " " + getId();
+        return name + " " + getId();
     }
 }

@@ -1,6 +1,6 @@
 package spd.trello.service;
 
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import spd.trello.domain.CheckList;
 import spd.trello.repository.CheckListRepositoryImpl;
@@ -11,15 +11,15 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class CheckListServiceTest extends BaseTest {
 
-    private static CheckList checkList;
+    private CheckList checkList;
     private final CheckListService service;
 
     public CheckListServiceTest() {
         service = new CheckListService(new CheckListRepositoryImpl(dataSource));
     }
 
-    @BeforeAll
-    static void create() {
+    @BeforeEach
+    void create() {
         checkList = new CheckList("checkList");
     }
 
@@ -38,19 +38,9 @@ class CheckListServiceTest extends BaseTest {
 
     @Test
     void testFindById() {
+        service.repository.create(checkList);
         CheckList findCheckList = service.findById(checkList.getId());
         assertEquals(checkList.getName(), findCheckList.getName());
-    }
-
-    @Test
-    void testFindByIdFailed() {
-        UUID uuid = UUID.randomUUID();
-        IllegalStateException ex = assertThrows(
-                IllegalStateException.class,
-                () -> service.findById(uuid),
-                "CheckList not found"
-        );
-        assertEquals("CheckList with ID: " + uuid + " doesn't exists", ex.getMessage());
     }
 
     @Test
@@ -63,7 +53,16 @@ class CheckListServiceTest extends BaseTest {
     }
 
     @Test
+    void testFindAll() {
+        service.repository.create(checkList);
+        service.create("checkList", "v@gmail.com");
+        service.create("checkList2", "d@gmail.com");
+        assertEquals(3, service.findAll().size());
+    }
+
+    @Test
     void testDelete() {
+        service.repository.create(checkList);
         boolean bool = service.delete(checkList.getId());
         assertTrue(bool);
     }
@@ -71,11 +70,6 @@ class CheckListServiceTest extends BaseTest {
     @Test
     void testDeleteFailed() {
         UUID uuid = UUID.randomUUID();
-        IllegalStateException ex = assertThrows(
-                IllegalStateException.class,
-                () -> service.delete(uuid),
-                "CheckList::findCheckListById failed"
-        );
-        assertEquals("CheckList with ID: " + uuid + " doesn't exists", ex.getMessage());
+        assertFalse(service.delete(uuid));
     }
 }

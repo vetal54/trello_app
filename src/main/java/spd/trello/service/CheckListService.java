@@ -1,52 +1,22 @@
 package spd.trello.service;
 
+import org.springframework.stereotype.Service;
 import spd.trello.domain.CheckList;
 import spd.trello.repository.CheckListRepositoryImpl;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.Scanner;
-import java.util.UUID;
-
-public class CheckListService extends AbstractService<CheckList> {
+@Service
+public class CheckListService extends ServiceLayer<CheckList> {
 
     public CheckListService(CheckListRepositoryImpl repository) {
         super(repository);
     }
 
-    @Override
-    public CheckList create() {
+    public CheckList create(String name, String email) {
         CheckList checkList = new CheckList();
-        Scanner scanner = new Scanner(System.in);
-        System.out.println("Enter check list name");
-        checkList.setName(scanner.nextLine());
+        checkList.setName(name);
+        checkList.setCreateBy(email);
         print(checkList);
         repository.create(checkList);
-        return checkList;
-    }
-
-    @Override
-    public void print(CheckList checkList) {
-        System.out.println(checkList);
-    }
-
-    @Override
-    public void update(CheckList checkList) {
-        repository.update(checkList);
-    }
-
-    @Override
-    public CheckList findById(UUID id) {
-        return repository.getById(id);
-    }
-
-    @Override
-    public List<CheckList> findAll() {
-        return repository.getAll();
-    }
-
-    @Override
-    public boolean delete(UUID id) {
-        return repository.delete(id);
+        return repository.getById(checkList.getId());
     }
 }

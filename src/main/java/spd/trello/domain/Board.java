@@ -37,6 +37,6 @@ public class Board extends Resource {
 
     @Override
     public String toString() {
-        return "\n" + name + ", id: " + getId();
+        return name + ", id: " + getId();
     }
 }

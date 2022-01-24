@@ -1,6 +1,7 @@
 package spd.trello.repository;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 public interface IRepository<E> {

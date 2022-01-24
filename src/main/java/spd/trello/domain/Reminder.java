@@ -26,6 +26,6 @@ public class Reminder extends Resource {
 
     @Override
     public String toString() {
-        return remindOn.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+        return "remind on: " + remindOn.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
     }
 }

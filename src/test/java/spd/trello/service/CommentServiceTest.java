@@ -1,6 +1,6 @@
 package spd.trello.service;
 
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import spd.trello.domain.Card;
 import spd.trello.domain.Comment;
@@ -13,15 +13,15 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class CommentServiceTest extends BaseTest {
 
-    private static Comment comment;
+    private Comment comment;
     private final CommentService service;
 
     public CommentServiceTest() {
         service = new CommentService(new CommentRepositoryImpl(dataSource));
     }
 
-    @BeforeAll
-    static void create() {
+    @BeforeEach
+    void create() {
         Card card = new Card("CardName");
         card.setDescription("New year 2022");
         CardService cs = new CardService(new CardRepositoryImpl(dataSource));
@@ -29,16 +29,6 @@ class CommentServiceTest extends BaseTest {
         comment = new Comment();
         comment.setText("comment");
         comment.setCardId(card.getId());
-    }
-
-    @Test
-    void createComment() {
-        assertNotNull(comment);
-        assertAll(
-                () -> assertNotNull(comment.getCreateDate()),
-                () -> assertNull(comment.getUpdateDate()),
-                () -> assertEquals("comment", comment.getText())
-        );
     }
 
     @Test
@@ -55,19 +45,9 @@ class CommentServiceTest extends BaseTest {
 
     @Test
     void testFindById() {
+        service.repository.create(comment);
         Comment findComment = service.findById(comment.getId());
         assertEquals(comment.getText(), findComment.getText());
-    }
-
-    @Test
-    void testFindByIdFailed() {
-        UUID uuid = UUID.randomUUID();
-        IllegalStateException ex = assertThrows(
-                IllegalStateException.class,
-                () -> service.findById(uuid),
-                "Comment not found"
-        );
-        assertEquals("Comment with ID: " + uuid + " doesn't exists", ex.getMessage());
     }
 
     @Test
@@ -80,7 +60,16 @@ class CommentServiceTest extends BaseTest {
     }
 
     @Test
+    void testFindAll() {
+        service.repository.create(comment);
+        service.create("text", "v@gmail.com", comment.getCardId());
+        service.create("text2", "d@gmail.com", comment.getCardId());
+        assertEquals(3, service.findAll().size());
+    }
+
+    @Test
     void testDelete() {
+        service.repository.create(comment);
         boolean bool = service.delete(comment.getId());
         assertTrue(bool);
     }
@@ -88,11 +77,6 @@ class CommentServiceTest extends BaseTest {
     @Test
     void testDeleteFailed() {
         UUID uuid = UUID.randomUUID();
-        IllegalStateException ex = assertThrows(
-                IllegalStateException.class,
-                () -> service.delete(uuid),
-                "Comment::findCommentById failed"
-        );
-        assertEquals("Comment with ID: " + uuid + " doesn't exists", ex.getMessage());
+        assertFalse(service.delete(uuid));
     }
 }

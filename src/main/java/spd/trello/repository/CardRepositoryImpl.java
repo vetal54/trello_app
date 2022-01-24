@@ -1,102 +1,67 @@
 package spd.trello.repository;
 
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Component;
 import spd.trello.domain.Card;
 
 import javax.sql.DataSource;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.*;
 
+@Component
 public class CardRepositoryImpl implements IRepository<Card> {
 
-    private final DataSource ds;
+    private final JdbcTemplate jdbcTemplate;
 
-    private final String CREATE = "INSERT INTO card (id, name, description, active, cardList_id) VALUES (?, ?, ?, ?, ?)";
+    public CardRepositoryImpl(DataSource dataSource) {
+        jdbcTemplate = new JdbcTemplate(dataSource);
+    }
+
+    private final String CREATE = "INSERT INTO card (id, name, description, active, create_by, create_date, cardList_id) VALUES (?, ?, ?, ?, ?, ?, ?)";
     private final String UPDATE = "UPDATE card SET name = ? WHERE id = ?";
     private final String FIND_BY_ID = "SELECT * FROM card WHERE id=?";
     private final String FIND_ALL = "SELECT * FROM card";
     private final String DELETE_BY_ID = "DELETE FROM card WHERE id=?";
 
-    public CardRepositoryImpl(DataSource dataSource) {
-        ds = dataSource;
-    }
-
     @Override
     public void create(Card card) {
-        try (Connection conn = ds.getConnection();
-             PreparedStatement ps = conn.prepareStatement(CREATE)) {
-            ps.setObject(1, card.getId());
-            ps.setString(2, card.getName());
-            ps.setString(3, card.getDescription());
-            ps.setBoolean(4, card.getActive());
-            ps.setObject(5, card.getCardListId());
-            ps.executeUpdate();
-        } catch (SQLException e) {
-            throw new IllegalStateException("Card creation failed", e);
-        }
+        jdbcTemplate.update(
+                CREATE,
+                card.getId(),
+                card.getName(),
+                card.getDescription(),
+                card.getActive(),
+                card.getCreateBy(),
+                Timestamp.valueOf(card.getCreateDate()),
+                card.getCardListId()
+        );
     }
 
     @Override
     public void update(Card card) {
-        try (Connection conn = ds.getConnection();
-             PreparedStatement ps = conn.prepareStatement(UPDATE)) {
-            ps.setString(1, card.getName());
-            ps.setObject(2, card.getId());
-            ps.executeUpdate();
-        } catch (SQLException e) {
-            throw new IllegalStateException("Card::update failed");
-        }
+        jdbcTemplate.update(
+                UPDATE,
+                card.getName(),
+                card.getId()
+        );
     }
 
     @Override
     public Card getById(UUID id) {
-        try (Connection con = ds.getConnection();
-             PreparedStatement stmt = con.prepareStatement(FIND_BY_ID)) {
-            stmt.setObject(1, id);
-            ResultSet resultSet = stmt.executeQuery();
-            if (resultSet.next()) {
-                return map(resultSet);
-            }
-        } catch (SQLException e) {
-            throw new IllegalStateException("Card::findCardById failed", e);
-        }
-        throw new IllegalStateException("Card with ID: " + id.toString() + " doesn't exists");
+        return jdbcTemplate.queryForObject(FIND_BY_ID, this::map, id);
     }
 
     @Override
     public List<Card> getAll() {
-        try (Connection con = ds.getConnection();
-             ResultSet rs = con.createStatement().executeQuery(FIND_ALL)) {
-            List<Card> cards = new ArrayList<>();
-            while (rs.next()) {
-                Card card = map(rs);
-                cards.add(card);
-            }
-            return cards;
-        } catch (SQLException e) {
-            System.out.println("Cards doesn't exists");
-            return Collections.emptyList();
-        }
+        return jdbcTemplate.query(FIND_ALL, this::map);
     }
 
     @Override
     public boolean delete(UUID id) {
-        if (getById(id) == null) {
-            return false;
-        }
-        try (Connection con = ds.getConnection();
-             PreparedStatement stmt = con.prepareStatement(DELETE_BY_ID)) {
-            stmt.setObject(1, id);
-            stmt.executeUpdate();
-            return true;
-        } catch (SQLException e) {
-            throw new IllegalStateException("Card::findCardById failed", e);
-        }
+        return jdbcTemplate.update(DELETE_BY_ID, id) > 0;
     }
 
-    private Card map(ResultSet rs) throws SQLException {
+    private Card map(ResultSet rs, int rowNum) throws SQLException {
         Card card = new Card();
         card.setId(UUID.fromString(rs.getString("id")));
         card.setName(rs.getString("name"));

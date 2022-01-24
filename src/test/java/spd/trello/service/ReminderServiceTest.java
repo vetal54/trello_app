@@ -1,6 +1,6 @@
 package spd.trello.service;
 
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import spd.trello.domain.Card;
 import spd.trello.domain.Reminder;
@@ -15,15 +15,15 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class ReminderServiceTest extends BaseTest {
 
-    private static Reminder reminder;
+    private Reminder reminder;
     private final ReminderService service;
 
     public ReminderServiceTest() {
         service = new ReminderService(new ReminderRepositoryImpl(dataSource));
     }
 
-    @BeforeAll
-    static void create() {
+    @BeforeEach
+    void create() {
         Card card = new Card("CardName");
         card.setDescription("New year 2022");
         CardService cs = new CardService(new CardRepositoryImpl(dataSource));
@@ -36,8 +36,8 @@ class ReminderServiceTest extends BaseTest {
     }
 
     @Test
-    void printComment() {
-        assertEquals(reminder
+    void printReminder() {
+        assertEquals("remind on: " + reminder
                 .getRemindOn()
                 .format(DateTimeFormatter
                         .ofPattern("yyyy-MM-dd HH:mm:ss")), reminder.toString());
@@ -52,19 +52,9 @@ class ReminderServiceTest extends BaseTest {
 
     @Test
     void testFindById() {
+        service.repository.create(reminder);
         Reminder findReminder = service.findById(reminder.getId());
         assertEquals(reminder.getRemindOn(), findReminder.getRemindOn());
-    }
-
-    @Test
-    void testFindByIdFailed() {
-        UUID uuid = UUID.randomUUID();
-        IllegalStateException ex = assertThrows(
-                IllegalStateException.class,
-                () -> service.findById(uuid),
-                "Reinder not found"
-        );
-        assertEquals("Reminder with ID: " + uuid + " doesn't exists", ex.getMessage());
     }
 
     @Test
@@ -77,7 +67,16 @@ class ReminderServiceTest extends BaseTest {
     }
 
     @Test
+    void testFindAll() {
+        service.repository.create(reminder);
+        service.create(LocalDateTime.now(), LocalDateTime.now(), LocalDateTime.now(), reminder.getCardId());
+        service.create(LocalDateTime.now(), LocalDateTime.now(), LocalDateTime.now(), reminder.getCardId());
+        assertEquals(3, service.findAll().size());
+    }
+
+    @Test
     void testDelete() {
+        service.repository.create(reminder);
         boolean bool = service.delete(reminder.getId());
         assertTrue(bool);
     }
@@ -85,11 +84,6 @@ class ReminderServiceTest extends BaseTest {
     @Test
     void testDeleteFailed() {
         UUID uuid = UUID.randomUUID();
-        IllegalStateException ex = assertThrows(
-                IllegalStateException.class,
-                () -> service.delete(uuid),
-                "Reminder::findReminderById failed"
-        );
-        assertEquals("Reminder with ID: " + uuid + " doesn't exists", ex.getMessage());
+        assertFalse(service.delete(uuid));
     }
 }

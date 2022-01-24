@@ -4,7 +4,7 @@ import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import org.flywaydb.core.Flyway;
 import org.junit.jupiter.api.BeforeAll;
-import spd.trello.repository.ConnectionToDB;
+import spd.trello.configuration.Config;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -31,12 +31,13 @@ public abstract class BaseTest {
 
         Flyway flyway = Flyway.configure()
                 .dataSource(dataSource)
+                .locations("classpath:db/migration")
                 .load();
         flyway.migrate();
     }
 
     private static Properties loadProperties() throws IOException {
-        InputStream in = ConnectionToDB.class.getClassLoader()
+        InputStream in = Config.class.getClassLoader()
                 .getResourceAsStream("testApplication.properties");
 
         Properties properties = new Properties();

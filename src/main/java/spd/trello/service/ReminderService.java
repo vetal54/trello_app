@@ -1,48 +1,27 @@
 package spd.trello.service;
 
+import org.springframework.stereotype.Service;
 import spd.trello.domain.Reminder;
 import spd.trello.repository.ReminderRepositoryImpl;
 
-import java.util.List;
-import java.util.Optional;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
-public class ReminderService extends AbstractService<Reminder> {
+@Service
+public class ReminderService extends ServiceLayer<Reminder> {
 
     public ReminderService(ReminderRepositoryImpl repository) {
         super(repository);
     }
 
-    @Override
-    public Reminder create() {
+    public Reminder create(LocalDateTime start, LocalDateTime end, LocalDateTime remind, UUID id) {
         Reminder reminder = new Reminder();
+        reminder.setStart(start);
+        reminder.setEnd(end);
+        reminder.setRemindOn(remind);
+        reminder.setCardId(id);
         print(reminder);
         repository.create(reminder);
-        return reminder;
-    }
-
-    @Override
-    public void print(Reminder reminder) {
-        System.out.println(reminder);
-    }
-
-    @Override
-    public void update(Reminder reminder) {
-        repository.update(reminder);
-    }
-
-    @Override
-    public Reminder findById(UUID id) {
-        return repository.getById(id);
-    }
-
-    @Override
-    public List<Reminder> findAll() {
-        return repository.getAll();
-    }
-
-    @Override
-    public boolean delete(UUID id) {
-        return repository.delete(id);
+        return repository.getById(reminder.getId());
     }
 }

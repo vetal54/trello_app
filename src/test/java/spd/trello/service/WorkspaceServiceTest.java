@@ -1,7 +1,8 @@
 package spd.trello.service;
 
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import spd.trello.domain.Workspace;
 import spd.trello.domain.WorkspaceVisibility;
 import spd.trello.repository.WorkspaceRepositoryImpl;
@@ -12,21 +13,21 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class WorkspaceServiceTest extends BaseTest {
 
-    private static Workspace workspace;
+    private Workspace workspace;
     private final WorkspaceService service;
 
     public WorkspaceServiceTest() {
         service = new WorkspaceService(new WorkspaceRepositoryImpl(dataSource));
     }
 
-    @BeforeAll
-    static void create() {
+    @BeforeEach
+    void create() {
         workspace = new Workspace("workspaceName", "New year 2022",WorkspaceVisibility.PUBLIC);
     }
 
     @Test
     void printWorkspace() {
-        assertEquals("\n" + workspace.getName() + " " + workspace.getId(), workspace.toString());
+        assertEquals(workspace.getName() + " " + workspace.getId(), workspace.toString());
     }
 
     @Test
@@ -38,19 +39,9 @@ class WorkspaceServiceTest extends BaseTest {
 
     @Test
     void testFindById() {
+        service.repository.create(workspace);
         Workspace findWorkspace = service.findById(workspace.getId());
         assertEquals(workspace.getName(), findWorkspace.getName());
-    }
-
-    @Test
-    void testFindByIdFailed() {
-        UUID uuid = UUID.randomUUID();
-        IllegalStateException ex = assertThrows(
-                IllegalStateException.class,
-                () -> service.findById(uuid),
-                "Workspace not found"
-        );
-        assertEquals("Workspace with ID: " + uuid + " doesn't exists", ex.getMessage());
     }
 
     @Test
@@ -63,19 +54,24 @@ class WorkspaceServiceTest extends BaseTest {
     }
 
     @Test
-    void testDelete() {
+    void testFindAll() {
+        service.repository.create(workspace);
+        service.create("work", "mail", WorkspaceVisibility.PRIVATE, "hello");
+        service.create("work2", "mail2", WorkspaceVisibility.PUBLIC, "hello2");
+        assertEquals(3, service.findAll().size());
+    }
+
+    @Test
+    void testDeleteTrue() {
+        service.repository.create(workspace);
         boolean bool = service.delete(workspace.getId());
         assertTrue(bool);
     }
 
     @Test
-    void testDeleteFailed() {
+    void testDeleteFalse() {
         UUID uuid = UUID.randomUUID();
-        IllegalStateException ex = assertThrows(
-                IllegalStateException.class,
-                () -> service.delete(uuid),
-                "Workspace::findWorkspaceById failed"
-        );
-        assertEquals("Workspace with ID: " + uuid + " doesn't exists", ex.getMessage());
+        boolean bool = service.delete(uuid);
+        assertFalse(bool);
     }
 }

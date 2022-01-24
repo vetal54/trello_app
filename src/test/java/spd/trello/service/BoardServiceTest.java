@@ -1,7 +1,8 @@
 package spd.trello.service;
 
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.dao.EmptyResultDataAccessException;
 import spd.trello.domain.Board;
 import spd.trello.domain.BoardVisibility;
 import spd.trello.domain.Workspace;
@@ -14,15 +15,15 @@ import java.util.UUID;
 import static org.junit.jupiter.api.Assertions.*;
 
 class BoardServiceTest extends BaseTest {
-    private static Board board;
+    private Board board;
     private final BoardService service;
 
     public BoardServiceTest() {
         service = new BoardService(new BoardRepositoryImpl(dataSource));
     }
 
-    @BeforeAll
-    static void create() {
+    @BeforeEach
+    void create() {
         Workspace workspace = new Workspace("workspaceName", "New year 2022", WorkspaceVisibility.PUBLIC);
         WorkspaceService ws = new WorkspaceService(new WorkspaceRepositoryImpl(dataSource));
         ws.repository.create(workspace);
@@ -32,7 +33,7 @@ class BoardServiceTest extends BaseTest {
 
     @Test
     void printBoard() {
-        assertEquals("\n" + board.getName() + ", id: " + board.getId(), board.toString());
+        assertEquals(board.getName() + ", id: " + board.getId(), board.toString());
     }
 
     @Test
@@ -44,6 +45,7 @@ class BoardServiceTest extends BaseTest {
 
     @Test
     void testFindById() {
+        service.repository.create(board);
         Board findBoard = service.findById(board.getId());
         assertEquals(board.getName(), findBoard.getName());
     }
@@ -51,12 +53,12 @@ class BoardServiceTest extends BaseTest {
     @Test
     void testFindByIdFailed() {
         UUID uuid = UUID.randomUUID();
-        IllegalStateException ex = assertThrows(
-                IllegalStateException.class,
+        EmptyResultDataAccessException ex = assertThrows(
+                EmptyResultDataAccessException.class,
                 () -> service.findById(uuid),
                 "Board not found"
         );
-        assertEquals("Board with ID: " + uuid + " doesn't exists", ex.getMessage());
+        assertEquals("Incorrect result size: expected 1, actual 0", ex.getMessage());
     }
 
     @Test
@@ -69,7 +71,16 @@ class BoardServiceTest extends BaseTest {
     }
 
     @Test
+    void testFindAll() {
+        service.repository.create(board);
+        service.create("board", "v@gmail.com", board.getWorkspaceId());
+        service.create("board2", "d@gmail.com", board.getWorkspaceId());
+        assertEquals(3 , service.findAll().size());
+    }
+
+    @Test
     void testDelete() {
+        service.repository.create(board);
         boolean bool = service.delete(board.getId());
         assertTrue(bool);
     }
@@ -77,11 +88,6 @@ class BoardServiceTest extends BaseTest {
     @Test
     void testDeleteFailed() {
         UUID uuid = UUID.randomUUID();
-        IllegalStateException ex = assertThrows(
-                IllegalStateException.class,
-                () -> service.delete(uuid),
-                "Board::findBoardById failed"
-        );
-        assertEquals("Board with ID: " + uuid + " doesn't exists", ex.getMessage());
+        assertFalse(service.delete(uuid));
     }
 }

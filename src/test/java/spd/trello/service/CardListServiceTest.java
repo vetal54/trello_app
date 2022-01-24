@@ -1,6 +1,6 @@
 package spd.trello.service;
 
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import spd.trello.domain.Board;
@@ -15,15 +15,15 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class CardListServiceTest extends BaseTest {
 
-    private static CardList cardList;
+    private CardList cardList;
     private final CardListService service;
 
     public CardListServiceTest() {
         service = new CardListService(new CardListRepositoryImpl(dataSource));
     }
 
-    @BeforeAll
-    static void create() {
+    @BeforeEach
+    void create() {
         Board board = new Board("board", "new Board", BoardVisibility.PRIVATE);
         BoardService bs = new BoardService(new BoardRepositoryImpl(dataSource));
         bs.repository.create(board);
@@ -50,19 +50,9 @@ class CardListServiceTest extends BaseTest {
 
     @Test
     void testFindById() {
+        service.repository.create(cardList);
         CardList findCardList = service.findById(cardList.getId());
         assertEquals(findCardList.getName(), cardList.getName());
-    }
-
-    @Test
-    void testFindByIdFailed() {
-        UUID uuid = UUID.randomUUID();
-        IllegalStateException ex = assertThrows(
-                IllegalStateException.class,
-                () -> service.findById(uuid),
-                "CardList not found"
-        );
-        assertEquals("CardList with ID: " + uuid + " doesn't exists", ex.getMessage());
     }
 
     @Test
@@ -75,7 +65,16 @@ class CardListServiceTest extends BaseTest {
     }
 
     @Test
+    void testFindAll() {
+        service.repository.create(cardList);
+        service.create("cardList", "v@gmail.com", cardList.getBoardId());
+        service.create("cardList2", "d@gmail.com", cardList.getBoardId());
+        assertEquals(3, service.findAll().size());
+    }
+
+    @Test
     void testDelete() {
+        service.repository.create(cardList);
         boolean bool = service.delete(cardList.getId());
         assertTrue(bool);
     }
@@ -83,11 +82,6 @@ class CardListServiceTest extends BaseTest {
     @Test
     void testDeleteFailed() {
         UUID uuid = UUID.randomUUID();
-        IllegalStateException ex = assertThrows(
-                IllegalStateException.class,
-                () -> service.delete(uuid),
-                "CardList::findCardListById failed"
-        );
-        assertEquals("CardList with ID: " + uuid + " doesn't exists", ex.getMessage());
+        assertFalse(service.delete(uuid));
     }
 }

@@ -1,20 +1,23 @@
 package spd.trello.repository;
 
-import lombok.RequiredArgsConstructor;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Component;
 import spd.trello.domain.Workspace;
 import spd.trello.domain.WorkspaceVisibility;
 
 import javax.sql.DataSource;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.*;
 
-@RequiredArgsConstructor
+@Component
 public class WorkspaceRepositoryImpl implements IRepository<Workspace> {
 
-    private final DataSource ds;
+    private final JdbcTemplate jdbcTemplate;
+
+    public WorkspaceRepositoryImpl(DataSource ds) {
+        jdbcTemplate = new JdbcTemplate(ds);
+    }
 
     private final String CREATE = "INSERT INTO workspace (id, name, description, visibility) VALUES (?, ?, ?, ?)";
     private final String UPDATE = "UPDATE workspace SET name = ?, description = ?, visibility = ? WHERE id = ?";
@@ -24,82 +27,42 @@ public class WorkspaceRepositoryImpl implements IRepository<Workspace> {
 
     @Override
     public void create(Workspace workspace) {
-        try (Connection conn = ds.getConnection();
-             PreparedStatement ps = conn.prepareStatement(CREATE)) {
-            ps.setObject(1, workspace.getId());
-            ps.setString(2, workspace.getName());
-            ps.setString(3, workspace.getDescription());
-            ps.setString(4, String.valueOf(workspace.getVisibility()));
-            ps.executeUpdate();
-            System.out.println("A new workspace added to the database");
-        } catch (SQLException e) {
-            throw new IllegalStateException("Workspace creation failed", e);
-        }
+        jdbcTemplate.update(
+                CREATE,
+                workspace.getId(),
+                workspace.getName(),
+                workspace.getDescription(),
+                String.valueOf(workspace.getVisibility())
+        );
     }
 
     @Override
     public void update(Workspace workspace) {
-        Scanner scanner = new Scanner(System.in);
-        System.out.println("Enter new name of workspace");
-        try (Connection conn = ds.getConnection();
-             PreparedStatement ps = conn.prepareStatement(UPDATE)) {
-            ps.setString(1, workspace.getName());
-            ps.setString(2, workspace.getDescription());
-            ps.setString(3, String.valueOf(workspace.getVisibility()));
-            ps.setObject(4, workspace.getId());
-            ps.executeUpdate();
-        } catch (SQLException e) {
-            throw new IllegalStateException("Workspace::update failed");
-        }
+        jdbcTemplate.update(
+                UPDATE,
+                workspace.getName(),
+                workspace.getDescription(),
+                String.valueOf(workspace.getVisibility()),
+                workspace.getId()
+        );
     }
 
     @Override
     public Workspace getById(UUID id) {
-        try (Connection con = ds.getConnection();
-             PreparedStatement stmt = con.prepareStatement(FIND_BY_ID)) {
-            stmt.setObject(1, id);
-            ResultSet resultSet = stmt.executeQuery();
-            if (resultSet.next()) {
-                return map(resultSet);
-            }
-        } catch (SQLException e) {
-            throw new IllegalStateException("Workspace::findWorkspaceById failed", e);
-        }
-        throw new IllegalStateException("Workspace with ID: " + id.toString() + " doesn't exists");
+        return jdbcTemplate.queryForObject(FIND_BY_ID, this::map, id);
     }
 
     @Override
     public List<Workspace> getAll() {
-        try (Connection con = ds.getConnection();
-             ResultSet rs = con.createStatement().executeQuery(FIND_ALL)) {
-            List<Workspace> workspaces = new ArrayList<>();
-            while (rs.next()) {
-                Workspace workspace = map(rs);
-                workspaces.add(workspace);
-            }
-            return workspaces;
-        } catch (SQLException e) {
-            System.out.println("Workspaces doesn't exists");
-            return Collections.emptyList();
-        }
+        return jdbcTemplate.query(FIND_ALL, this::map);
     }
 
     @Override
     public boolean delete(UUID id) {
-        if (getById(id) == null) {
-            return false;
-        }
-        try (Connection con = ds.getConnection();
-             PreparedStatement stmt = con.prepareStatement(DELETE_BY_ID)) {
-            stmt.setObject(1, id);
-            stmt.executeUpdate();
-            return true;
-        } catch (SQLException e) {
-            throw new IllegalStateException("Workspace::findWorkspaceById failed", e);
-        }
+        return jdbcTemplate.update(DELETE_BY_ID, id) > 0;
     }
 
-    private Workspace map(ResultSet rs) throws SQLException {
+    private Workspace map(ResultSet rs, int rowNum) throws SQLException {
         Workspace workspace = new Workspace();
         workspace.setId(UUID.fromString(rs.getString("id")));
         workspace.setName(rs.getString("name"));

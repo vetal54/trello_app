@@ -1,100 +1,64 @@
 package spd.trello.repository;
 
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Component;
 import spd.trello.domain.CheckList;
 
 import javax.sql.DataSource;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.*;
 
+@Component
 public class CheckListRepositoryImpl implements IRepository<CheckList> {
 
-    private final DataSource ds;
+    private final JdbcTemplate jdbcTemplate;
 
-    private final String CREATE = "INSERT INTO check_list (id, name) VALUES (?, ?)";
+    public CheckListRepositoryImpl(DataSource dataSource) {
+        jdbcTemplate = new JdbcTemplate(dataSource);
+    }
+
+    private final String CREATE = "INSERT INTO check_list (id, name, create_by, create_date) VALUES (?, ?, ?, ?)";
     private final String UPDATE = "UPDATE check_list SET name = ? WHERE id = ?";
     private final String FIND_BY_ID = "SELECT * FROM check_list WHERE id=?";
     private final String FIND_ALL = "SELECT * FROM check_list";
     private final String DELETE_BY_ID = "DELETE FROM check_list WHERE id=?";
 
-    public CheckListRepositoryImpl(DataSource dataSource) {
-        ds = dataSource;
-    }
-
     @Override
     public void create(CheckList checkList) {
-        try (Connection conn = ds.getConnection();
-             PreparedStatement ps = conn.prepareStatement(CREATE)) {
-            ps.setObject(1, checkList.getId());
-            ps.setString(2, checkList.getName());
-            // ps.setObject(5, checkList.getCardList_id());
-            ps.executeUpdate();
-        } catch (SQLException e) {
-            throw new IllegalStateException("CheckList creation failed", e);
-        }
+        jdbcTemplate.update(
+                CREATE,
+                checkList.getId(),
+                checkList.getName(),
+                checkList.getCreateBy(),
+                Timestamp.valueOf(checkList.getCreateDate())
+        );
     }
 
     @Override
     public void update(CheckList checkList) {
-        try (Connection conn = ds.getConnection();
-             PreparedStatement ps = conn.prepareStatement(UPDATE)) {
-            ps.setString(1, checkList.getName());
-            ps.setObject(2, checkList.getId());
-            ps.executeUpdate();
-        } catch (SQLException e) {
-            throw new IllegalStateException("CheckList::update failed");
-        }
+        jdbcTemplate.update(
+                UPDATE,
+                checkList.getName(),
+                checkList.getId()
+        );
     }
 
     @Override
     public CheckList getById(UUID id) {
-        try (Connection con = ds.getConnection();
-             PreparedStatement stmt = con.prepareStatement(FIND_BY_ID)) {
-            stmt.setObject(1, id);
-            ResultSet resultSet = stmt.executeQuery();
-            if (resultSet.next()) {
-                return map(resultSet);
-            }
-        } catch (SQLException e) {
-            throw new IllegalStateException("CheckList::findCheckListById failed", e);
-        }
-        throw new IllegalStateException("CheckList with ID: " + id.toString() + " doesn't exists");
+        return jdbcTemplate.queryForObject(FIND_BY_ID, this::map, id);
     }
 
     @Override
     public List<CheckList> getAll() {
-        try (Connection con = ds.getConnection();
-             ResultSet rs = con.createStatement().executeQuery(FIND_ALL)) {
-            List<CheckList> checkLists = new ArrayList<>();
-            while (rs.next()) {
-                CheckList checkList = map(rs);
-                checkLists.add(checkList);
-            }
-            return checkLists;
-        } catch (SQLException e) {
-            System.out.println("CheckLists doesn't exists");
-            return Collections.emptyList();
-        }
+        return jdbcTemplate.query(FIND_ALL, this::map);
     }
 
     @Override
     public boolean delete(UUID id) {
-        if (getById(id) == null) {
-            return false;
-        }
-        try (Connection con = ds.getConnection();
-             PreparedStatement stmt = con.prepareStatement(DELETE_BY_ID)) {
-            stmt.setObject(1, id);
-            stmt.executeUpdate();
-            return true;
-        } catch (SQLException e) {
-            throw new IllegalStateException("CheckList::findCheckListById failed", e);
-        }
+        return jdbcTemplate.update(DELETE_BY_ID, id) > 0;
     }
 
-    private CheckList map(ResultSet rs) throws SQLException {
+    private CheckList map(ResultSet rs, int rowNum) throws SQLException {
         CheckList checkList = new CheckList();
         checkList.setId(UUID.fromString(rs.getString("id")));
         checkList.setName(rs.getString("name"));

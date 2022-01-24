@@ -1,6 +1,7 @@
 package spd.trello.repository;
 
-import lombok.RequiredArgsConstructor;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Component;
 import spd.trello.domain.Reminder;
 
 import javax.sql.DataSource;
@@ -8,10 +9,14 @@ import java.sql.*;
 import java.time.LocalDateTime;
 import java.util.*;
 
-@RequiredArgsConstructor
+@Component
 public class ReminderRepositoryImpl implements IRepository<Reminder> {
 
-    private final DataSource ds;
+    private final JdbcTemplate jdbcTemplate;
+
+    public ReminderRepositoryImpl(DataSource dataSource) {
+        jdbcTemplate = new JdbcTemplate(dataSource);
+    }
 
     private final String CREATE = "INSERT INTO reminder (id, startOn, endOn, remindOn, active, card_id) VALUES (?, ?, ?, ?, ?, ?)";
     private final String UPDATE = "UPDATE reminder SET startOn = ? WHERE id = ?";
@@ -21,79 +26,42 @@ public class ReminderRepositoryImpl implements IRepository<Reminder> {
 
     @Override
     public void create(Reminder reminder) {
-        try (Connection conn = ds.getConnection();
-             PreparedStatement ps = conn.prepareStatement(CREATE)) {
-            ps.setObject(1, reminder.getId());
-            ps.setTimestamp(2, Timestamp.valueOf(reminder.getStart()));
-            ps.setTimestamp(3, Timestamp.valueOf(reminder.getEnd()));
-            ps.setTimestamp(4, Timestamp.valueOf(reminder.getRemindOn()));
-            ps.setBoolean(5, reminder.getActive());
-            ps.setObject(6, reminder.getCardId());
-            ps.executeUpdate();
-        } catch (SQLException e) {
-            throw new IllegalStateException("Reminder creation failed", e);
-        }
+        jdbcTemplate.update(
+                CREATE,
+                reminder.getId(),
+                Timestamp.valueOf(reminder.getStart()),
+                Timestamp.valueOf(reminder.getEnd()),
+                Timestamp.valueOf(reminder.getRemindOn()),
+                reminder.getActive(),
+                reminder.getCardId()
+        );
     }
 
     @Override
     public void update(Reminder reminder) {
-        try (Connection conn = ds.getConnection();
-             PreparedStatement ps = conn.prepareStatement(UPDATE)) {
-            ps.setTimestamp(1, Timestamp.valueOf(reminder.getStart()));
-            ps.setObject(2, reminder.getId());
-            ps.executeUpdate();
-        } catch (SQLException e) {
-            throw new IllegalStateException("Reminder::update failed");
-        }
+        jdbcTemplate.update(
+                UPDATE,
+                Timestamp.valueOf(reminder.getStart()),
+                reminder.getId()
+        );
     }
 
     @Override
     public Reminder getById(UUID id) {
-        try (Connection con = ds.getConnection();
-             PreparedStatement stmt = con.prepareStatement(FIND_BY_ID)) {
-            stmt.setObject(1, id);
-            ResultSet resultSet = stmt.executeQuery();
-            if (resultSet.next()) {
-                return map(resultSet);
-            }
-        } catch (SQLException e) {
-            throw new IllegalStateException("Reminder::findReminderById failed", e);
-        }
-        throw new IllegalStateException("Reminder with ID: " + id.toString() + " doesn't exists");
+        return jdbcTemplate.queryForObject(FIND_BY_ID, this::map, id);
     }
 
     @Override
     public List<Reminder> getAll() {
-        try (Connection con = ds.getConnection();
-             ResultSet rs = con.createStatement().executeQuery(FIND_ALL)) {
-            List<Reminder> reminders = new ArrayList<>();
-            while (rs.next()) {
-                Reminder reminder = map(rs);
-                reminders.add(reminder);
-            }
-            return reminders;
-        } catch (SQLException e) {
-            System.out.println("Reminders doesn't exists");
-            return Collections.emptyList();
-        }
+        return jdbcTemplate.query(FIND_ALL, this::map);
     }
 
     @Override
     public boolean delete(UUID id) {
-        if (getById(id) == null) {
-            return false;
-        }
-        try (Connection con = ds.getConnection();
-             PreparedStatement stmt = con.prepareStatement(DELETE_BY_ID)) {
-            stmt.setObject(1, id);
-            stmt.executeUpdate();
-            return true;
-        } catch (SQLException e) {
-            throw new IllegalStateException("Reminder::findReminderById failed", e);
-        }
+        return jdbcTemplate.update(DELETE_BY_ID, id) > 0;
     }
 
-    private Reminder map(ResultSet rs) throws SQLException {
+    private Reminder map(ResultSet rs, int rowNum) throws SQLException {
         Reminder reminder = new Reminder();
         reminder.setId(UUID.fromString(rs.getString("id")));
         reminder.setStart(LocalDateTime.parse(rs.getTimestamp("startOn").toLocalDateTime().toString()));
