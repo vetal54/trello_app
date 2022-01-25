@@ -1,25 +1,26 @@
 package spd.trello.service;
 
+import org.springframework.stereotype.Service;
 import spd.trello.domain.Card;
-import spd.trello.domain.User;
+import spd.trello.repository.CardRepositoryImpl;
 
-import java.util.Scanner;
+import java.util.UUID;
 
-public class CardService extends AbstractService<Card> {
+@Service
+public class CardService extends ServiceLayer<Card> {
 
-    @Override
-    public Card create() {
-        Card card = new Card();
-        Scanner scanner = new Scanner(System.in);
-        System.out.println("Enter card name:");
-        card.setName(scanner.next());
-        System.out.println("Enter the email of the user who created the card:");
-        card.setCreateBy(scanner.next());
-        return card;
+    public CardService(CardRepositoryImpl repository) {
+        super(repository);
     }
 
-    @Override
-    public void print(Card card) {
-        System.out.println(card);
+    public Card create(String name, String email, String description, UUID id) {
+        Card card = new Card();
+        card.setName(name);
+        card.setCreateBy(email);
+        card.setDescription(description);
+        card.setCardListId(id);
+        print(card);
+        repository.create(card);
+        return repository.getById(card.getId());
     }
 }

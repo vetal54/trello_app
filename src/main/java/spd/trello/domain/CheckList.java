@@ -2,6 +2,7 @@ package spd.trello.domain;
 
 import lombok.*;
 import lombok.experimental.FieldDefaults;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -19,5 +20,10 @@ public class CheckList extends Resource {
 
     public void addItems(CheckableItem item) {
         items.add(item);
+    }
+
+    @Override
+    public String toString() {
+        return name + ", id: " + getId();
     }
 }

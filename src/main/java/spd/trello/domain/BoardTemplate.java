@@ -7,7 +7,7 @@ import lombok.experimental.FieldDefaults;
 @NoArgsConstructor
 @EqualsAndHashCode(callSuper = true)
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class BoardTemplate extends Domain{
+public class BoardTemplate extends Domain {
     String name;
 
     public BoardTemplate(String name) {

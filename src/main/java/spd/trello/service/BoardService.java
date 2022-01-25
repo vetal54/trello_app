@@ -1,24 +1,25 @@
 package spd.trello.service;
 
+import org.springframework.stereotype.Service;
 import spd.trello.domain.Board;
-import spd.trello.domain.User;
+import spd.trello.repository.BoardRepositoryImpl;
 
-import java.util.Scanner;
+import java.util.UUID;
 
-public class BoardService extends AbstractService<Board> {
-    @Override
-    public Board create() {
-        Board board = new Board();
-        Scanner scanner = new Scanner(System.in);
-        System.out.println("Enter board name:");
-        board.setName(scanner.next());
-        System.out.println("Enter the email of the user who created the board:");
-        board.setCreateBy(scanner.next());
-        return board;
+@Service
+public class BoardService extends ServiceLayer<Board> {
+
+    public BoardService(BoardRepositoryImpl repository) {
+        super(repository);
     }
 
-    @Override
-    public void print(Board board) {
-        System.out.println(board);
+    public Board create(String name, String email, UUID id) {
+        Board board = new Board();
+        board.setName(name);
+        board.setCreateBy(email);
+        board.setWorkspaceId(id);
+        print(board);
+        repository.create(board);
+        return repository.getById(board.getId());
     }
 }

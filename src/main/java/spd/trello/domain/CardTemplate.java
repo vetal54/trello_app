@@ -8,8 +8,4 @@ import lombok.experimental.FieldDefaults;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class CardTemplate {
     String title;
-
-    public CardTemplate(String title) {
-        this.title = title;
-    }
 }

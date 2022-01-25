@@ -1,36 +1,22 @@
-package spd.trello.repository;
+package spd.trello.configuration;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
-import org.flywaydb.core.Flyway;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
 
 import javax.sql.DataSource;
 import java.io.IOException;
 import java.io.InputStream;
-import java.sql.Connection;
-import java.sql.SQLException;
 import java.util.Properties;
 
-public class ConnectionToDB {
-
-    public Connection getConnection() throws IOException {
-        DataSource dataSource = createDataSource();
-        Connection connection = null;
-        try {
-            connection = dataSource.getConnection();
-            if (connection != null) {
-                System.out.println("Connection established");
-            } else {
-                System.out.println("Connection not established");
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return connection;
-    }
+@Configuration
+@ComponentScan(basePackages = {"spd.trello.repository", "spd.trello.service"})
+public class Config {
 
     private static Properties loadProperties() throws IOException {
-        InputStream in = ConnectionToDB.class.getClassLoader()
+        InputStream in = Config.class.getClassLoader()
                 .getResourceAsStream("application.properties");
 
         Properties properties = new Properties();
@@ -38,6 +24,7 @@ public class ConnectionToDB {
         return properties;
     }
 
+    @Bean
     public DataSource createDataSource() throws IOException {
         Properties properties = loadProperties();
 
@@ -51,5 +38,4 @@ public class ConnectionToDB {
 
         return new HikariDataSource(cfg);
     }
-
 }

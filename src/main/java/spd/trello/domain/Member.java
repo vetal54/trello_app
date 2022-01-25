@@ -3,6 +3,8 @@ package spd.trello.domain;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
+import java.util.UUID;
+
 @Data
 @NoArgsConstructor
 @EqualsAndHashCode(callSuper = true)
@@ -10,6 +12,7 @@ import lombok.experimental.FieldDefaults;
 public class Member extends Domain {
     User user;
     Role role;
+    UUID boardId;
 
     public Member(User user, Role role) {
         this.user = user;
