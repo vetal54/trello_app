@@ -1,30 +1,28 @@
 package spd.trello.repository;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Repository;
 import spd.trello.domain.CardList;
 
-import javax.sql.DataSource;
 import java.sql.*;
+import java.time.LocalDateTime;
 import java.util.*;
 
-@Component
-public class CardListRepositoryImpl implements IRepository<CardList> {
+@Repository
+@RequiredArgsConstructor
+public class CardListRepositoryImpl implements AbstractRepository<CardList> {
 
     private final JdbcTemplate jdbcTemplate;
 
-    public CardListRepositoryImpl(DataSource dataSource) {
-        jdbcTemplate = new JdbcTemplate(dataSource);
-    }
-
     private final String CREATE = "INSERT INTO card_list (id, name, active, create_by, create_date, board_id) VALUES (?, ?, ?, ?, ?, ?)";
-    private final String UPDATE = "UPDATE card_list SET name = ? WHERE id = ?";
+    private final String UPDATE = "UPDATE card_list SET name = ?, update_date = ? WHERE id = ?";
     private final String FIND_BY_ID = "SELECT * FROM card_list WHERE id=?";
     private final String FIND_ALL = "SELECT * FROM card_list";
     private final String DELETE_BY_ID = "DELETE FROM card_list WHERE id=?";
 
     @Override
-    public void create(CardList cardList) {
+    public CardList save(CardList cardList) {
         jdbcTemplate.update(
                 CREATE,
                 cardList.getId(),
@@ -34,15 +32,18 @@ public class CardListRepositoryImpl implements IRepository<CardList> {
                 Timestamp.valueOf(cardList.getCreateDate()),
                 cardList.getBoardId()
         );
+        return getById(cardList.getId());
     }
 
     @Override
-    public void update(CardList cardList) {
+    public CardList update(CardList cardList) {
         jdbcTemplate.update(
                 UPDATE,
                 cardList.getName(),
+                Timestamp.valueOf(LocalDateTime.now()),
                 cardList.getId()
         );
+        return getById(cardList.getId());
     }
 
     @Override

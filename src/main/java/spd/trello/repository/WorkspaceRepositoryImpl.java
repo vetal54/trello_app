@@ -1,32 +1,32 @@
 package spd.trello.repository;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Repository;
+import org.springframework.web.bind.annotation.RequestMapping;
 import spd.trello.domain.Workspace;
 import spd.trello.domain.WorkspaceVisibility;
 
-import javax.sql.DataSource;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.*;
 
-@Component
-public class WorkspaceRepositoryImpl implements IRepository<Workspace> {
+@Repository
+@RequiredArgsConstructor
+public class WorkspaceRepositoryImpl implements AbstractRepository<Workspace> {
 
     private final JdbcTemplate jdbcTemplate;
 
-    public WorkspaceRepositoryImpl(DataSource ds) {
-        jdbcTemplate = new JdbcTemplate(ds);
-    }
-
     private final String CREATE = "INSERT INTO workspace (id, name, description, visibility) VALUES (?, ?, ?, ?)";
-    private final String UPDATE = "UPDATE workspace SET name = ?, description = ?, visibility = ? WHERE id = ?";
+    private final String UPDATE = "UPDATE workspace SET name = ?, description = ?, visibility = ?, update_date = ? WHERE id = ?";
     private final String FIND_BY_ID = "SELECT * FROM workspace WHERE id=?";
     private final String FIND_ALL = "SELECT * FROM workspace";
     private final String DELETE_BY_ID = "DELETE FROM workspace WHERE id=?";
 
     @Override
-    public void create(Workspace workspace) {
+    public Workspace save(Workspace workspace) {
         jdbcTemplate.update(
                 CREATE,
                 workspace.getId(),
@@ -34,17 +34,20 @@ public class WorkspaceRepositoryImpl implements IRepository<Workspace> {
                 workspace.getDescription(),
                 String.valueOf(workspace.getVisibility())
         );
+        return getById(workspace.getId());
     }
 
     @Override
-    public void update(Workspace workspace) {
+    public Workspace update(Workspace workspace) {
         jdbcTemplate.update(
                 UPDATE,
                 workspace.getName(),
                 workspace.getDescription(),
                 String.valueOf(workspace.getVisibility()),
+                Timestamp.valueOf(LocalDateTime.now()),
                 workspace.getId()
         );
+        return getById(workspace.getId());
     }
 
     @Override

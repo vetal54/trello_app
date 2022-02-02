@@ -6,7 +6,7 @@ import spd.trello.domain.WorkspaceVisibility;
 import spd.trello.repository.WorkspaceRepositoryImpl;
 
 @Service
-public class WorkspaceService extends ServiceLayer<Workspace> {
+public class WorkspaceService extends AbstractService<Workspace, WorkspaceRepositoryImpl> {
 
     public WorkspaceService(WorkspaceRepositoryImpl repository) {
         super(repository);
@@ -18,8 +18,7 @@ public class WorkspaceService extends ServiceLayer<Workspace> {
         workspace.setCreateBy(email);
         workspace.setVisibility(ws);
         workspace.setDescription(description);
-        print(workspace);
-        repository.create(workspace);
+        repository.save(workspace);
         return repository.getById(workspace.getId());
     }
 }

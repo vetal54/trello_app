@@ -1,30 +1,28 @@
 package spd.trello.repository;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Repository;
 import spd.trello.domain.Card;
 
-import javax.sql.DataSource;
 import java.sql.*;
+import java.time.LocalDateTime;
 import java.util.*;
 
-@Component
-public class CardRepositoryImpl implements IRepository<Card> {
+@Repository
+@RequiredArgsConstructor
+public class CardRepositoryImpl implements AbstractRepository<Card> {
 
     private final JdbcTemplate jdbcTemplate;
 
-    public CardRepositoryImpl(DataSource dataSource) {
-        jdbcTemplate = new JdbcTemplate(dataSource);
-    }
-
     private final String CREATE = "INSERT INTO card (id, name, description, active, create_by, create_date, cardList_id) VALUES (?, ?, ?, ?, ?, ?, ?)";
-    private final String UPDATE = "UPDATE card SET name = ? WHERE id = ?";
+    private final String UPDATE = "UPDATE card SET name = ?, update_date = ? WHERE id = ?";
     private final String FIND_BY_ID = "SELECT * FROM card WHERE id=?";
     private final String FIND_ALL = "SELECT * FROM card";
     private final String DELETE_BY_ID = "DELETE FROM card WHERE id=?";
 
     @Override
-    public void create(Card card) {
+    public Card save(Card card) {
         jdbcTemplate.update(
                 CREATE,
                 card.getId(),
@@ -35,15 +33,18 @@ public class CardRepositoryImpl implements IRepository<Card> {
                 Timestamp.valueOf(card.getCreateDate()),
                 card.getCardListId()
         );
+        return getById(card.getId());
     }
 
     @Override
-    public void update(Card card) {
+    public Card update(Card card) {
         jdbcTemplate.update(
                 UPDATE,
                 card.getName(),
+                Timestamp.valueOf(LocalDateTime.now()),
                 card.getId()
         );
+        return getById(card.getId());
     }
 
     @Override

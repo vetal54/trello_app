@@ -7,7 +7,7 @@ import spd.trello.repository.CardRepositoryImpl;
 import java.util.UUID;
 
 @Service
-public class CardService extends ServiceLayer<Card> {
+public class CardService extends AbstractService<Card, CardRepositoryImpl> {
 
     public CardService(CardRepositoryImpl repository) {
         super(repository);
@@ -19,8 +19,7 @@ public class CardService extends ServiceLayer<Card> {
         card.setCreateBy(email);
         card.setDescription(description);
         card.setCardListId(id);
-        print(card);
-        repository.create(card);
+        repository.save(card);
         return repository.getById(card.getId());
     }
 }

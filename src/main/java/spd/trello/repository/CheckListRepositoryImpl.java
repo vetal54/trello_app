@@ -1,30 +1,28 @@
 package spd.trello.repository;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Repository;
 import spd.trello.domain.CheckList;
 
-import javax.sql.DataSource;
 import java.sql.*;
+import java.time.LocalDateTime;
 import java.util.*;
 
-@Component
-public class CheckListRepositoryImpl implements IRepository<CheckList> {
+@Repository
+@RequiredArgsConstructor
+public class CheckListRepositoryImpl implements AbstractRepository<CheckList> {
 
     private final JdbcTemplate jdbcTemplate;
 
-    public CheckListRepositoryImpl(DataSource dataSource) {
-        jdbcTemplate = new JdbcTemplate(dataSource);
-    }
-
     private final String CREATE = "INSERT INTO check_list (id, name, create_by, create_date) VALUES (?, ?, ?, ?)";
-    private final String UPDATE = "UPDATE check_list SET name = ? WHERE id = ?";
+    private final String UPDATE = "UPDATE check_list SET name = ?, update_date = ? WHERE id = ?";
     private final String FIND_BY_ID = "SELECT * FROM check_list WHERE id=?";
     private final String FIND_ALL = "SELECT * FROM check_list";
     private final String DELETE_BY_ID = "DELETE FROM check_list WHERE id=?";
 
     @Override
-    public void create(CheckList checkList) {
+    public CheckList save(CheckList checkList) {
         jdbcTemplate.update(
                 CREATE,
                 checkList.getId(),
@@ -32,15 +30,18 @@ public class CheckListRepositoryImpl implements IRepository<CheckList> {
                 checkList.getCreateBy(),
                 Timestamp.valueOf(checkList.getCreateDate())
         );
+        return getById(checkList.getId());
     }
 
     @Override
-    public void update(CheckList checkList) {
+    public CheckList update(CheckList checkList) {
         jdbcTemplate.update(
                 UPDATE,
                 checkList.getName(),
+                Timestamp.valueOf(LocalDateTime.now()),
                 checkList.getId()
         );
+        return getById(checkList.getId());
     }
 
     @Override

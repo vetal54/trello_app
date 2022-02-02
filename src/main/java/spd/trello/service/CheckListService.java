@@ -5,7 +5,7 @@ import spd.trello.domain.CheckList;
 import spd.trello.repository.CheckListRepositoryImpl;
 
 @Service
-public class CheckListService extends ServiceLayer<CheckList> {
+public class CheckListService extends AbstractService<CheckList, CheckListRepositoryImpl> {
 
     public CheckListService(CheckListRepositoryImpl repository) {
         super(repository);
@@ -15,8 +15,7 @@ public class CheckListService extends ServiceLayer<CheckList> {
         CheckList checkList = new CheckList();
         checkList.setName(name);
         checkList.setCreateBy(email);
-        print(checkList);
-        repository.create(checkList);
+        repository.save(checkList);
         return repository.getById(checkList.getId());
     }
 }

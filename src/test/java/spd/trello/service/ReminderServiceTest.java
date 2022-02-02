@@ -19,15 +19,15 @@ class ReminderServiceTest extends BaseTest {
     private final ReminderService service;
 
     public ReminderServiceTest() {
-        service = new ReminderService(new ReminderRepositoryImpl(dataSource));
+        service = new ReminderService(new ReminderRepositoryImpl(jdbcTemplate));
     }
 
     @BeforeEach
     void create() {
-        Card card = new Card("CardName");
+        Card card = new Card( );
         card.setDescription("New year 2022");
-        CardService cs = new CardService(new CardRepositoryImpl(dataSource));
-        cs.repository.create(card);
+        CardService cs = new CardService(new CardRepositoryImpl(jdbcTemplate));
+        cs.repository.save(card);
         reminder = new Reminder();
         reminder.setStart(LocalDateTime.now());
         reminder.setEnd(LocalDateTime.of(2022, 9, 19, 14, 5, 20));
@@ -45,21 +45,21 @@ class ReminderServiceTest extends BaseTest {
 
     @Test
     void testSave() {
-        service.repository.create(reminder);
+        service.repository.save(reminder);
         Reminder byId = service.findById(reminder.getId());
         assertEquals(reminder.getRemindOn(), byId.getRemindOn());
     }
 
     @Test
     void testFindById() {
-        service.repository.create(reminder);
+        service.repository.save(reminder);
         Reminder findReminder = service.findById(reminder.getId());
         assertEquals(reminder.getRemindOn(), findReminder.getRemindOn());
     }
 
     @Test
     void testUpdate() {
-        service.repository.create(reminder);
+        service.repository.save(reminder);
         reminder.setStart(LocalDateTime.of(2021, 9, 15, 10, 0, 0));
         service.update(reminder);
         Reminder startReminder = service.findById(reminder.getId());
@@ -68,7 +68,7 @@ class ReminderServiceTest extends BaseTest {
 
     @Test
     void testFindAll() {
-        service.repository.create(reminder);
+        service.repository.save(reminder);
         service.create(LocalDateTime.now(), LocalDateTime.now(), LocalDateTime.now(), reminder.getCardId());
         service.create(LocalDateTime.now(), LocalDateTime.now(), LocalDateTime.now(), reminder.getCardId());
         assertEquals(3, service.findAll().size());
@@ -76,7 +76,7 @@ class ReminderServiceTest extends BaseTest {
 
     @Test
     void testDelete() {
-        service.repository.create(reminder);
+        service.repository.save(reminder);
         boolean bool = service.delete(reminder.getId());
         assertTrue(bool);
     }

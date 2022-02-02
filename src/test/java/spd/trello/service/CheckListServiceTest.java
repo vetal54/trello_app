@@ -15,12 +15,13 @@ class CheckListServiceTest extends BaseTest {
     private final CheckListService service;
 
     public CheckListServiceTest() {
-        service = new CheckListService(new CheckListRepositoryImpl(dataSource));
+        service = new CheckListService(new CheckListRepositoryImpl(jdbcTemplate));
     }
 
     @BeforeEach
     void create() {
-        checkList = new CheckList("checkList");
+        checkList = new CheckList();
+        checkList.setName("checkList");
     }
 
     @Test
@@ -31,21 +32,21 @@ class CheckListServiceTest extends BaseTest {
 
     @Test
     void testSave() {
-        service.repository.create(checkList);
+        service.repository.save(checkList);
         CheckList byId = service.findById(checkList.getId());
         assertEquals(checkList.getName(), byId.getName());
     }
 
     @Test
     void testFindById() {
-        service.repository.create(checkList);
+        service.repository.save(checkList);
         CheckList findCheckList = service.findById(checkList.getId());
         assertEquals(checkList.getName(), findCheckList.getName());
     }
 
     @Test
     void testUpdate() {
-        service.repository.create(checkList);
+        service.repository.save(checkList);
         checkList.setName("it`s update checkList");
         service.update(checkList);
         CheckList startCardList = service.findById(checkList.getId());
@@ -54,7 +55,7 @@ class CheckListServiceTest extends BaseTest {
 
     @Test
     void testFindAll() {
-        service.repository.create(checkList);
+        service.repository.save(checkList);
         service.create("checkList", "v@gmail.com");
         service.create("checkList2", "d@gmail.com");
         assertEquals(3, service.findAll().size());
@@ -62,7 +63,7 @@ class CheckListServiceTest extends BaseTest {
 
     @Test
     void testDelete() {
-        service.repository.create(checkList);
+        service.repository.save(checkList);
         boolean bool = service.delete(checkList.getId());
         assertTrue(bool);
     }

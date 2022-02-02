@@ -1,31 +1,28 @@
 package spd.trello.repository;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Repository;
 import spd.trello.domain.Reminder;
 
-import javax.sql.DataSource;
 import java.sql.*;
 import java.time.LocalDateTime;
 import java.util.*;
 
-@Component
-public class ReminderRepositoryImpl implements IRepository<Reminder> {
+@Repository
+@RequiredArgsConstructor
+public class ReminderRepositoryImpl implements AbstractRepository<Reminder> {
 
     private final JdbcTemplate jdbcTemplate;
 
-    public ReminderRepositoryImpl(DataSource dataSource) {
-        jdbcTemplate = new JdbcTemplate(dataSource);
-    }
-
     private final String CREATE = "INSERT INTO reminder (id, startOn, endOn, remindOn, active, card_id) VALUES (?, ?, ?, ?, ?, ?)";
-    private final String UPDATE = "UPDATE reminder SET startOn = ? WHERE id = ?";
+    private final String UPDATE = "UPDATE reminder SET startOn = ?, update_date = ? WHERE id = ?";
     private final String FIND_BY_ID = "SELECT * FROM reminder WHERE id=?";
     private final String FIND_ALL = "SELECT * FROM reminder";
     private final String DELETE_BY_ID = "DELETE FROM reminder WHERE id=?";
 
     @Override
-    public void create(Reminder reminder) {
+    public Reminder save(Reminder reminder) {
         jdbcTemplate.update(
                 CREATE,
                 reminder.getId(),
@@ -35,15 +32,18 @@ public class ReminderRepositoryImpl implements IRepository<Reminder> {
                 reminder.getActive(),
                 reminder.getCardId()
         );
+        return getById(reminder.getId());
     }
 
     @Override
-    public void update(Reminder reminder) {
+    public Reminder update(Reminder reminder) {
         jdbcTemplate.update(
                 UPDATE,
                 Timestamp.valueOf(reminder.getStart()),
+                Timestamp.valueOf(LocalDateTime.now()),
                 reminder.getId()
         );
+        return getById(reminder.getId());
     }
 
     @Override

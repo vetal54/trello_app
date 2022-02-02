@@ -17,15 +17,15 @@ class CommentServiceTest extends BaseTest {
     private final CommentService service;
 
     public CommentServiceTest() {
-        service = new CommentService(new CommentRepositoryImpl(dataSource));
+        service = new CommentService(new CommentRepositoryImpl(jdbcTemplate));
     }
 
     @BeforeEach
     void create() {
-        Card card = new Card("CardName");
+        Card card = new Card( );
         card.setDescription("New year 2022");
-        CardService cs = new CardService(new CardRepositoryImpl(dataSource));
-        cs.repository.create(card);
+        CardService cs = new CardService(new CardRepositoryImpl(jdbcTemplate));
+        cs.repository.save(card);
         comment = new Comment();
         comment.setText("comment");
         comment.setCardId(card.getId());
@@ -38,21 +38,21 @@ class CommentServiceTest extends BaseTest {
 
     @Test
     void testSave() {
-        service.repository.create(comment);
+        service.repository.save(comment);
         Comment byId = service.findById(comment.getId());
         assertEquals(comment.getText(), byId.getText());
     }
 
     @Test
     void testFindById() {
-        service.repository.create(comment);
+        service.repository.save(comment);
         Comment findComment = service.findById(comment.getId());
         assertEquals(comment.getText(), findComment.getText());
     }
 
     @Test
     void testUpdate() {
-        service.repository.create(comment);
+        service.repository.save(comment);
         comment.setText("it`s update comment");
         service.update(comment);
         Comment startComment = service.findById(comment.getId());
@@ -61,7 +61,7 @@ class CommentServiceTest extends BaseTest {
 
     @Test
     void testFindAll() {
-        service.repository.create(comment);
+        service.repository.save(comment);
         service.create("text", "v@gmail.com", comment.getCardId());
         service.create("text2", "d@gmail.com", comment.getCardId());
         assertEquals(3, service.findAll().size());
@@ -69,7 +69,7 @@ class CommentServiceTest extends BaseTest {
 
     @Test
     void testDelete() {
-        service.repository.create(comment);
+        service.repository.save(comment);
         boolean bool = service.delete(comment.getId());
         assertTrue(bool);
     }

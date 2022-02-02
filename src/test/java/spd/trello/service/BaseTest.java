@@ -4,8 +4,10 @@ import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import org.flywaydb.core.Flyway;
 import org.junit.jupiter.api.BeforeAll;
+import org.springframework.jdbc.core.JdbcTemplate;
 import spd.trello.configuration.Config;
 
+import javax.sql.DataSource;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
@@ -13,6 +15,7 @@ import java.util.Properties;
 public abstract class BaseTest {
 
     protected static HikariDataSource dataSource;
+    protected static JdbcTemplate jdbcTemplate;
 
     @BeforeAll
     public static void init() throws IOException {
@@ -28,6 +31,7 @@ public abstract class BaseTest {
         int maxConnection = Integer.parseInt(properties.getProperty("jdbc.pool.maxConnection"));
         cfg.setMaximumPoolSize(maxConnection);
         dataSource = new HikariDataSource(cfg);
+        jdbcTemplate = new JdbcTemplate(dataSource);
 
         Flyway flyway = Flyway.configure()
                 .dataSource(dataSource)

@@ -6,6 +6,5 @@ CREATE TABLE board
     update_by    VARCHAR(255),
     create_date  TIMESTAMP,
     update_date  TIMESTAMP,
-    workspace_id UUID
-        CONSTRAINT board_details_id_fk REFERENCES "workspace" (id)
+    workspace_id UUID REFERENCES "workspace" (id) ON DELETE CASCADE
 );

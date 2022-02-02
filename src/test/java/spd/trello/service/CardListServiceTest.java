@@ -19,15 +19,15 @@ class CardListServiceTest extends BaseTest {
     private final CardListService service;
 
     public CardListServiceTest() {
-        service = new CardListService(new CardListRepositoryImpl(dataSource));
+        service = new CardListService(new CardListRepositoryImpl(jdbcTemplate));
     }
 
     @BeforeEach
     void create() {
-        Board board = new Board("board", "new Board", BoardVisibility.PRIVATE);
-        BoardService bs = new BoardService(new BoardRepositoryImpl(dataSource));
-        bs.repository.create(board);
-        cardList = new CardList("cardListName");
+        Board board = new Board();
+        BoardService bs = new BoardService(new BoardRepositoryImpl(jdbcTemplate));
+        bs.repository.save(board);
+        cardList = new CardList();
         cardList.setBoardId(board.getId());
     }
 
@@ -38,7 +38,7 @@ class CardListServiceTest extends BaseTest {
 
     @Test
     void testSave() {
-        service.repository.create(cardList);
+        service.repository.save(cardList);
         CardList byId = service.findById(cardList.getId());
         assertNotNull(byId);
 
@@ -50,14 +50,14 @@ class CardListServiceTest extends BaseTest {
 
     @Test
     void testFindById() {
-        service.repository.create(cardList);
+        service.repository.save(cardList);
         CardList findCardList = service.findById(cardList.getId());
         assertEquals(findCardList.getName(), cardList.getName());
     }
 
     @Test
     void testUpdate() {
-        service.repository.create(cardList);
+        service.repository.save(cardList);
         cardList.setName("it`s update cardList");
         service.update(cardList);
         CardList startCardList = service.findById(cardList.getId());
@@ -66,7 +66,7 @@ class CardListServiceTest extends BaseTest {
 
     @Test
     void testFindAll() {
-        service.repository.create(cardList);
+        service.repository.save(cardList);
         service.create("cardList", "v@gmail.com", cardList.getBoardId());
         service.create("cardList2", "d@gmail.com", cardList.getBoardId());
         assertEquals(3, service.findAll().size());
@@ -74,7 +74,7 @@ class CardListServiceTest extends BaseTest {
 
     @Test
     void testDelete() {
-        service.repository.create(cardList);
+        service.repository.save(cardList);
         boolean bool = service.delete(cardList.getId());
         assertTrue(bool);
     }

@@ -17,15 +17,15 @@ class CardServiceTest extends BaseTest {
     private final CardService service;
 
     public CardServiceTest() {
-        service = new CardService(new CardRepositoryImpl(dataSource));
+        service = new CardService(new CardRepositoryImpl(jdbcTemplate));
     }
 
     @BeforeEach
     void create() {
-        CardList cardList = new CardList("new CardList");
-        CardListService cls = new CardListService(new CardListRepositoryImpl(dataSource));
-        cls.repository.create(cardList);
-        card = new Card("cardName");
+        CardList cardList = new CardList( );
+        CardListService cls = new CardListService(new CardListRepositoryImpl(jdbcTemplate));
+        cls.repository.save(cardList);
+        card = new Card( );
         card.setDescription("New year 2022");
         card.setCardListId(cardList.getId());
     }
@@ -37,21 +37,21 @@ class CardServiceTest extends BaseTest {
 
     @Test
     void testSave() {
-        service.repository.create(card);
+        service.repository.save(card);
         Card byId = service.findById(card.getId());
         assertEquals(card.getName(), byId.getName());
     }
 
     @Test
     void testFindById() {
-        service.repository.create(card);
+        service.repository.save(card);
         Card findCard = service.findById(card.getId());
         assertEquals(card.getName(), findCard.getName());
     }
 
     @Test
     void testUpdate() {
-        service.repository.create(card);
+        service.repository.save(card);
         card.setName("it`s update card");
         service.update(card);
         Card startCardList = service.findById(card.getId());
@@ -60,7 +60,7 @@ class CardServiceTest extends BaseTest {
 
     @Test
     void testFindAll() {
-        service.repository.create(card);
+        service.repository.save(card);
         service.create("card", "v@gmail.com", "Hi!", card.getCardListId());
         service.create("card2", "d@gmail.com", "Hi?", card.getCardListId());
         assertEquals(3, service.findAll().size());
@@ -68,7 +68,7 @@ class CardServiceTest extends BaseTest {
 
     @Test
     void testDelete() {
-        service.repository.create(card);
+        service.repository.save(card);
         boolean bool = service.delete(card.getId());
         assertTrue(bool);
     }

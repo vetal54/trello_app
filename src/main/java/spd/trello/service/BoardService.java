@@ -7,7 +7,7 @@ import spd.trello.repository.BoardRepositoryImpl;
 import java.util.UUID;
 
 @Service
-public class BoardService extends ServiceLayer<Board> {
+public class BoardService extends AbstractService<Board, BoardRepositoryImpl> {
 
     public BoardService(BoardRepositoryImpl repository) {
         super(repository);
@@ -18,8 +18,7 @@ public class BoardService extends ServiceLayer<Board> {
         board.setName(name);
         board.setCreateBy(email);
         board.setWorkspaceId(id);
-        print(board);
-        repository.create(board);
+        repository.save(board);
         return repository.getById(board.getId());
     }
 }

@@ -8,7 +8,7 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Service
-public class ReminderService extends ServiceLayer<Reminder> {
+public class ReminderService extends AbstractService<Reminder, ReminderRepositoryImpl> {
 
     public ReminderService(ReminderRepositoryImpl repository) {
         super(repository);
@@ -20,8 +20,7 @@ public class ReminderService extends ServiceLayer<Reminder> {
         reminder.setEnd(end);
         reminder.setRemindOn(remind);
         reminder.setCardId(id);
-        print(reminder);
-        repository.create(reminder);
+        repository.save(reminder);
         return repository.getById(reminder.getId());
     }
 }

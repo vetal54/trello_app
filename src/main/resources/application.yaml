@@ -1,0 +1,36 @@
+spring:
+  application:
+    name: trello-app
+
+  datasource:
+    type: com.zaxxer.hikari.HikariDataSource
+    url: jdbc:postgresql://localhost:5432/trello
+    username: postgres
+    password: vetal54
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 50
+
+  flyway:
+    enabled: true
+    validate-on-migrate: true
+
+#  jpa:
+#    show-sql: true
+#    open-in-view: false
+#    properties:
+#      hibernate.format_sql: true
+
+  mvc:
+    pathmatch:
+      matching-strategy: ant_path_matcher
+
+server:
+  error:
+    include-message: always
+    include-exception: true
+
+  port: 8081
+
+#application:
+#  pagination-feature: true

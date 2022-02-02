@@ -2,7 +2,6 @@ package spd.trello.service;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import spd.trello.domain.Workspace;
 import spd.trello.domain.WorkspaceVisibility;
 import spd.trello.repository.WorkspaceRepositoryImpl;
@@ -17,36 +16,29 @@ class WorkspaceServiceTest extends BaseTest {
     private final WorkspaceService service;
 
     public WorkspaceServiceTest() {
-        service = new WorkspaceService(new WorkspaceRepositoryImpl(dataSource));
+        service = new WorkspaceService(new WorkspaceRepositoryImpl(jdbcTemplate));
     }
 
     @BeforeEach
     void create() {
-        workspace = new Workspace("workspaceName", "New year 2022",WorkspaceVisibility.PUBLIC);
-    }
-
-    @Test
-    void printWorkspace() {
-        assertEquals(workspace.getName() + " " + workspace.getId(), workspace.toString());
+        workspace = service.create("work", "email", WorkspaceVisibility.PRIVATE, "hello");
     }
 
     @Test
     void save() {
-        service.repository.create(workspace);
-        Workspace byId = service.findById(workspace.getId());
+        Workspace byId = service.repository.save(workspace);
         assertEquals(workspace.getName(), byId.getName());
     }
 
     @Test
     void testFindById() {
-        service.repository.create(workspace);
-        Workspace findWorkspace = service.findById(workspace.getId());
+        Workspace findWorkspace = service.repository.save(workspace);
         assertEquals(workspace.getName(), findWorkspace.getName());
     }
 
     @Test
     void testUpdate() {
-        service.repository.create(workspace);
+        Workspace workspace1 = service.repository.save(workspace);
         workspace.setName("it`s update workspace");
         service.update(workspace);
         Workspace startBoard = service.findById(workspace.getId());
@@ -55,15 +47,15 @@ class WorkspaceServiceTest extends BaseTest {
 
     @Test
     void testFindAll() {
-        service.repository.create(workspace);
-        service.create("work", "mail", WorkspaceVisibility.PRIVATE, "hello");
-        service.create("work2", "mail2", WorkspaceVisibility.PUBLIC, "hello2");
+       Workspace workspace1 = service.repository.save(workspace);
+       Workspace workspace2 = service.create("work", "mail", WorkspaceVisibility.PRIVATE, "hello");
+       Workspace workspace3 = service.create("work2", "mail2", WorkspaceVisibility.PUBLIC, "hello2");
         assertEquals(3, service.findAll().size());
     }
 
     @Test
     void testDeleteTrue() {
-        service.repository.create(workspace);
+       Workspace workspace1 = service.repository.save(workspace);
         boolean bool = service.delete(workspace.getId());
         assertTrue(bool);
     }

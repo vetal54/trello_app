@@ -8,7 +8,7 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Service
-public class CommentService extends ServiceLayer<Comment> {
+public class CommentService extends AbstractService<Comment, CommentRepositoryImpl> {
 
     public CommentService(CommentRepositoryImpl repository) {
         super(repository);
@@ -20,8 +20,7 @@ public class CommentService extends ServiceLayer<Comment> {
         comment.setDate(LocalDateTime.now());
         comment.setCreateBy(email);
         comment.setCardId(id);
-        print(comment);
-        repository.create(comment);
+        repository.save(comment);
         return repository.getById(comment.getId());
     }
 }

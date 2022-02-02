@@ -8,5 +8,5 @@ CREATE TABLE card_list
     create_date TIMESTAMP,
     update_date TIMESTAMP,
     board_id    UUID
-        CONSTRAINT cardList_details_id_fk REFERENCES "board" (id)
+        CONSTRAINT cardList_details_id_fk REFERENCES "board" (id) ON DELETE CASCADE
 );

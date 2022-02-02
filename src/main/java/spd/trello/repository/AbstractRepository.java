@@ -1,13 +1,14 @@
 package spd.trello.repository;
 
+import spd.trello.domain.common.Resource;
+
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
-public interface IRepository<E> {
-    void create(E e);
+public interface AbstractRepository<E extends Resource> {
+    E save(E e);
 
-    void update(E e);
+    E update(E e);
 
     E getById(UUID id);
 
