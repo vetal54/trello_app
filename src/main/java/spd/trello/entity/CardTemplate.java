@@ -1,4 +1,4 @@
-package spd.trello.domain;
+package spd.trello.entity;
 
 import lombok.*;
 import lombok.experimental.FieldDefaults;

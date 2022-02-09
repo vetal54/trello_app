@@ -1,7 +1,7 @@
 package spd.trello.service;
 
 import org.springframework.stereotype.Service;
-import spd.trello.domain.CardList;
+import spd.trello.entity.resource.CardList;
 import spd.trello.repository.CardListRepositoryImpl;
 
 import java.util.UUID;

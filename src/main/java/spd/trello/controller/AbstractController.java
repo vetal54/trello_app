@@ -3,7 +3,7 @@ package spd.trello.controller;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import spd.trello.domain.common.Resource;
+import spd.trello.entity.common.Resource;
 import spd.trello.exeption.ResourceNotFoundException;
 import spd.trello.service.CommonService;
 
@@ -14,7 +14,7 @@ public class AbstractController<E extends Resource, S extends CommonService<E>> 
 
     S service;
 
-    public AbstractController(S service){
+    public AbstractController(S service) {
         this.service = service;
     }
 
@@ -39,8 +39,8 @@ public class AbstractController<E extends Resource, S extends CommonService<E>> 
     @DeleteMapping("/{id}")
     @Override
     public HttpStatus delete(@PathVariable UUID id) {
-        boolean status = service.delete(id);
-        return status ?  HttpStatus.OK : HttpStatus.NOT_FOUND;
+        service.delete(id);
+        return HttpStatus.OK;
     }
 
     @GetMapping("/{id}")

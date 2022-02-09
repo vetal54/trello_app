@@ -1,7 +1,7 @@
 package spd.trello.service;
 
 import org.springframework.stereotype.Service;
-import spd.trello.domain.Board;
+import spd.trello.entity.resource.Board;
 import spd.trello.repository.BoardRepositoryImpl;
 
 import java.util.UUID;

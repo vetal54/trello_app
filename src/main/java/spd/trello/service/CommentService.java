@@ -1,7 +1,7 @@
 package spd.trello.service;
 
 import org.springframework.stereotype.Service;
-import spd.trello.domain.Comment;
+import spd.trello.entity.resource.Comment;
 import spd.trello.repository.CommentRepositoryImpl;
 
 import java.time.LocalDateTime;

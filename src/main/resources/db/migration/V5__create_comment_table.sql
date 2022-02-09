@@ -7,5 +7,5 @@ CREATE TABLE comment
     create_date TIMESTAMP,
     update_date TIMESTAMP,
     card_id     UUID
-        CONSTRAINT comment_details_id_fk REFERENCES "card" (id) ON DELETE CASCADE
+        CONSTRAINT comment_details_id_fk REFERENCES "card" (id)
 );

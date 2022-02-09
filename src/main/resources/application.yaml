@@ -15,11 +15,11 @@ spring:
     enabled: true
     validate-on-migrate: true
 
-#  jpa:
-#    show-sql: true
-#    open-in-view: false
-#    properties:
-#      hibernate.format_sql: true
+  jpa:
+    show-sql: true
+    open-in-view: false
+    properties:
+      hibernate.format_sql: true
 
   mvc:
     pathmatch:
@@ -30,7 +30,5 @@ server:
     include-message: always
     include-exception: true
 
-  port: 8081
-
-#application:
-#  pagination-feature: true
+application:
+  pagination-feature: true

@@ -1,8 +1,8 @@
-package spd.trello.domain;
+package spd.trello.entity.domain;
 
 import lombok.*;
 import lombok.experimental.FieldDefaults;
-import spd.trello.domain.common.Domain;
+import spd.trello.entity.common.Domain;
 
 import java.util.TimeZone;
 import java.util.UUID;

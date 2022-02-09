@@ -1,8 +1,8 @@
 package spd.trello.service;
 
 import org.springframework.stereotype.Service;
-import spd.trello.domain.Workspace;
-import spd.trello.domain.WorkspaceVisibility;
+import spd.trello.entity.resource.Workspace;
+import spd.trello.entity.WorkspaceVisibility;
 import spd.trello.repository.WorkspaceRepositoryImpl;
 
 @Service

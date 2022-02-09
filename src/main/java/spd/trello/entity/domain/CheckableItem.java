@@ -1,13 +1,13 @@
-package spd.trello.domain;
+package spd.trello.entity.domain;
 
 import lombok.*;
 import lombok.experimental.FieldDefaults;
-import spd.trello.domain.common.Domain;
+import spd.trello.entity.common.Domain;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class Label extends Domain {
+public class CheckableItem extends Domain {
     String name;
-    String color;
+    Boolean checked;
 }

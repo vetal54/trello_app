@@ -1,17 +1,12 @@
-package spd.trello.domain;
+package spd.trello.entity.resource;
 
 import lombok.*;
 import lombok.experimental.FieldDefaults;
-import spd.trello.domain.common.Resource;
-
-import java.io.File;
+import spd.trello.entity.common.Domain;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class Attachment extends Resource {
-    String link;
+public class BoardTemplate extends Domain {
     String name;
-    File file;
 }
-

@@ -1,12 +1,14 @@
 package spd.trello.service;
 
-import spd.trello.domain.common.Resource;
+import spd.trello.entity.common.Resource;
+import spd.trello.exeption.ResourceNotFoundException;
 import spd.trello.repository.AbstractRepository;
 
 import java.util.List;
 import java.util.UUID;
 
 public abstract class AbstractService<E extends Resource, R extends AbstractRepository<E>> implements CommonService<E> {
+
     protected R repository;
 
     AbstractService(R repository) {
@@ -15,26 +17,26 @@ public abstract class AbstractService<E extends Resource, R extends AbstractRepo
 
     @Override
     public E save(E e) {
-       return repository.save(e);
+        return repository.save(e);
     }
 
     @Override
     public E update(E e) {
-       return repository.update(e);
+        return repository.save(e);
     }
 
     @Override
     public E findById(UUID id) {
-        return repository.getById(id);
+        return repository.findById(id).orElseThrow(ResourceNotFoundException::new);
     }
 
     @Override
     public List<E> findAll() {
-        return repository.getAll();
+        return repository.findAll();
     }
 
     @Override
-    public boolean delete(UUID id) {
-        return repository.delete(id);
+    public void delete(UUID id) {
+        repository.deleteById(id);
     }
 }

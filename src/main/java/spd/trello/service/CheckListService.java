@@ -1,7 +1,7 @@
 package spd.trello.service;
 
 import org.springframework.stereotype.Service;
-import spd.trello.domain.CheckList;
+import spd.trello.entity.resource.CheckList;
 import spd.trello.repository.CheckListRepositoryImpl;
 
 @Service
