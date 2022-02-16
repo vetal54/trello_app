@@ -3,7 +3,7 @@ package spd.trello.controller;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import spd.trello.entity.common.Resource;
+import spd.trello.domian.common.Resource;
 import spd.trello.exeption.ResourceNotFoundException;
 import spd.trello.service.CommonService;
 

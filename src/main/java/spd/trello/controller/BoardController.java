@@ -2,7 +2,7 @@ package spd.trello.controller;
 
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import spd.trello.entity.resource.Board;
+import spd.trello.domian.Board;
 import spd.trello.service.BoardService;
 
 @RestController

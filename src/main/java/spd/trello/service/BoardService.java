@@ -1,15 +1,15 @@
 package spd.trello.service;
 
 import org.springframework.stereotype.Service;
-import spd.trello.entity.resource.Board;
-import spd.trello.repository.BoardRepositoryImpl;
+import spd.trello.domian.Board;
+import spd.trello.repository.BoardRepository;
 
 import java.util.UUID;
 
 @Service
-public class BoardService extends AbstractService<Board, BoardRepositoryImpl> {
+public class BoardService extends AbstractService<Board, BoardRepository> {
 
-    public BoardService(BoardRepositoryImpl repository) {
+    public BoardService(BoardRepository repository) {
         super(repository);
     }
 

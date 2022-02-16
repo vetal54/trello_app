@@ -1,14 +1,15 @@
 package spd.trello.service;
 
 import org.springframework.stereotype.Service;
-import spd.trello.entity.resource.Workspace;
-import spd.trello.entity.WorkspaceVisibility;
-import spd.trello.repository.WorkspaceRepositoryImpl;
+import spd.trello.domian.Workspace;
+import spd.trello.domian.type.WorkspaceVisibility;
+import spd.trello.exeption.ResourceNotFoundException;
+import spd.trello.repository.WorkspaceRepository;
 
 @Service
-public class WorkspaceService extends AbstractService<Workspace, WorkspaceRepositoryImpl> {
+public class WorkspaceService extends AbstractService<Workspace, WorkspaceRepository> {
 
-    public WorkspaceService(WorkspaceRepositoryImpl repository) {
+    public WorkspaceService(WorkspaceRepository repository) {
         super(repository);
     }
 
@@ -19,6 +20,6 @@ public class WorkspaceService extends AbstractService<Workspace, WorkspaceReposi
         workspace.setVisibility(ws);
         workspace.setDescription(description);
         repository.save(workspace);
-        return repository.getById(workspace.getId());
+        return repository.findById(workspace.getId()).orElseThrow(ResourceNotFoundException::new);
     }
 }

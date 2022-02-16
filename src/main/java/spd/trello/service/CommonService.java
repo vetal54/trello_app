@@ -1,6 +1,6 @@
 package spd.trello.service;
 
-import spd.trello.entity.common.Resource;
+import spd.trello.domian.common.Resource;
 
 import java.util.List;
 import java.util.UUID;

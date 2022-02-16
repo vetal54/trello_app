@@ -1,15 +1,15 @@
 package spd.trello.service;
 
 import org.springframework.stereotype.Service;
-import spd.trello.entity.resource.CardList;
-import spd.trello.repository.CardListRepositoryImpl;
+import spd.trello.domian.CardList;
+import spd.trello.repository.CardListRepository;
 
 import java.util.UUID;
 
 @Service
-public class CardListService extends AbstractService<CardList, CardListRepositoryImpl> {
+public class CardListService extends AbstractService<CardList, CardListRepository> {
 
-    public CardListService(CardListRepositoryImpl repository) {
+    public CardListService(CardListRepository repository) {
         super(repository);
     }
 

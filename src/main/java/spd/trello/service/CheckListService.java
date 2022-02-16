@@ -1,21 +1,14 @@
 package spd.trello.service;
 
 import org.springframework.stereotype.Service;
-import spd.trello.entity.resource.CheckList;
-import spd.trello.repository.CheckListRepositoryImpl;
+import spd.trello.domian.CheckList;
 
 @Service
-public class CheckListService extends AbstractService<CheckList, CheckListRepositoryImpl> {
+public class CheckListService {
 
-    public CheckListService(CheckListRepositoryImpl repository) {
-        super(repository);
-    }
-
-    public CheckList create(String name, String email) {
+    public CheckList create(String name) {
         CheckList checkList = new CheckList();
         checkList.setName(name);
-        checkList.setCreateBy(email);
-        repository.save(checkList);
-        return repository.getById(checkList.getId());
+        return checkList;
     }
 }

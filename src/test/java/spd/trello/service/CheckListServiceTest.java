@@ -1,6 +1,6 @@
 package spd.trello.service;
 
-class CheckListServiceTest extends BaseTest {
+class CheckListServiceTest {
 
 //    private CheckList checkList;
 //    private final CheckListService service;

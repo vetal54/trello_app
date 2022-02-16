@@ -2,71 +2,60 @@ package spd.trello.service;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import spd.trello.domain.Board;
-import spd.trello.domain.BoardVisibility;
-import spd.trello.domain.Workspace;
-import spd.trello.domain.WorkspaceVisibility;
-import spd.trello.repository.BoardRepositoryImpl;
-import spd.trello.repository.WorkspaceRepositoryImpl;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+import spd.trello.domian.Board;
+import spd.trello.domian.Workspace;
+import spd.trello.domian.type.BoardVisibility;
+import spd.trello.domian.type.WorkspaceVisibility;
+import spd.trello.repository.BoardRepository;
+import spd.trello.repository.WorkspaceRepository;
 
-import java.util.UUID;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
 
-import static org.junit.jupiter.api.Assertions.*;
+class BoardServiceTest {
 
-class BoardServiceTest extends BaseTest {
+    @Mock
+    private BoardRepository boardRepository;
+    @Mock
+    private WorkspaceRepository workspaceRepository;
     private Board board;
-    private final BoardService service;
+    private Workspace workspace;
+    private BoardService service;
 
-    public BoardServiceTest() {
-        service = new BoardService(new BoardRepositoryImpl(jdbcTemplate));
+    void create() {
+        board = new Board();
+        board.setName("vitaliy");
+        board.setCreateBy("@gmail");
+        board.setArchived(false);
+        board.setVisibility(BoardVisibility.PRIVATE);
+        board.setDescription("hello");
+
+        workspace = new Workspace();
+        workspace.setName("vitaliy");
+        workspace.setCreateBy("@gmail");
+        workspace.setVisibility(WorkspaceVisibility.PRIVATE);
+        workspace.setDescription("hello");
     }
 
     @BeforeEach
-    void create() {
-        WorkspaceService ws = new WorkspaceService(new WorkspaceRepositoryImpl(jdbcTemplate));
-        Workspace workspace = ws.create("work", "email", WorkspaceVisibility.PRIVATE, "Hello");
-        board = service.create("board", "email", workspace.getId());
+    void init() {
+        MockitoAnnotations.openMocks(this);
+        service = new BoardService(boardRepository);
+        create();
     }
 
     @Test
-    void save() {
-        Board byId = service.repository.save(board);
-        assertEquals(board.getName(), byId.getName());
-    }
+    void saveBoard() {
+        when(workspaceRepository.save(workspace)).thenReturn(workspace);
+        Workspace savedWorkspace = workspaceRepository.save(workspace);
 
-    @Test
-    void testFindById() {
-        Board findBoard = service.repository.save(board);
-        assertEquals(board.getName(), findBoard.getName());
-    }
+        board.setWorkspaceId(workspace.getId());
 
-    @Test
-    void testUpdate() {
-        Board board12 = service.repository.save(board);
-        board.setName("it`s update board");
-        service.update(board);
-        Board startBoard = service.findById(board.getId());
-        assertEquals(board.getName(), startBoard.getName());
-    }
+        when(boardRepository.save(board)).thenReturn(board);
+        Board savedBoard = boardRepository.save(board);
 
-    @Test
-    void testFindAll() {
-        Board board1 = service.repository.save(board);
-        service.create("board", "v@gmail.com", board.getWorkspaceId());
-        service.create("board2", "d@gmail.com", board.getWorkspaceId());
-        assertEquals(3, service.findAll().size());
-    }
-
-    @Test
-    void testDelete() {
-       Board board1 = service.repository.save(board);
-        boolean bool = service.delete(board.getId());
-        assertTrue(bool);
-    }
-
-    @Test
-    void testDeleteFailed() {
-        UUID uuid = UUID.randomUUID();
-        assertFalse(service.delete(uuid));
+        assertThat(savedWorkspace.getId()).isEqualTo(savedBoard.getWorkspaceId());
     }
 }

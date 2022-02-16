@@ -1,23 +1,24 @@
 package spd.trello.service;
 
 import org.springframework.stereotype.Service;
-import spd.trello.entity.resource.Comment;
-import spd.trello.repository.CommentRepositoryImpl;
+import spd.trello.domian.Comment;
+import spd.trello.repository.CommentRepository;
 
+import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Service
-public class CommentService extends AbstractService<Comment, CommentRepositoryImpl> {
+public class CommentService extends AbstractService<Comment, CommentRepository> {
 
-    public CommentService(CommentRepositoryImpl repository) {
+    public CommentService(CommentRepository repository) {
         super(repository);
     }
 
     public Comment create(String text, String email, UUID id) {
         Comment comment = new Comment();
         comment.setText(text);
-        comment.setDate(LocalDateTime.now());
+        comment.setDate(Timestamp.valueOf(LocalDateTime.now()));
         comment.setCreateBy(email);
         comment.setCardId(id);
         repository.save(comment);
