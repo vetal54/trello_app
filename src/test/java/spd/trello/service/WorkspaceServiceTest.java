@@ -2,8 +2,11 @@ package spd.trello.service;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 import spd.trello.domian.type.WorkspaceVisibility;
 import spd.trello.domian.Workspace;
 import spd.trello.exeption.ResourceNotFoundException;
@@ -16,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+@ExtendWith(MockitoExtension.class)
 class WorkspaceServiceTest {
 
     @Mock
@@ -40,8 +44,7 @@ class WorkspaceServiceTest {
 
     @Test
     void workspaceSave() {
-        when(repository.save(workspace)).thenReturn(workspace);
-
+        when(repository.save(Mockito.any(Workspace.class))).thenReturn(workspace);
         Workspace savedWorkspace = repository.save(workspace);
         assertThat(savedWorkspace).isEqualTo(workspace);
     }
@@ -49,9 +52,7 @@ class WorkspaceServiceTest {
     @Test
     void emptyListOfWorkspaces() {
         when(repository.findAll()).thenReturn(Collections.emptyList());
-
         List<Workspace> workspaces = service.findAll();
-
         assertThat(workspaces).isEmpty();
     }
 
@@ -62,9 +63,7 @@ class WorkspaceServiceTest {
                         workspace
                 )
         );
-
         List<Workspace> workspaces = service.findAll();
-
         assertThat(workspaces).isEqualTo(List.of(workspace));
     }
 
@@ -82,9 +81,7 @@ class WorkspaceServiceTest {
         when(repository.findById(workspace.getId())).thenReturn(
                 Optional.of(workspace)
         );
-
         Workspace workspaceFindById = service.findById(workspace.getId());
-
         assertThat(workspaceFindById).isEqualTo(workspace);
     }
 
@@ -98,11 +95,8 @@ class WorkspaceServiceTest {
     void workspaceWasUpdated() {
         when(repository.save(workspace))
                 .thenReturn(workspace);
-
         workspace.setName("new Name");
-
         Workspace updatedWorkspace = service.save(workspace);
-
-        assertThat(updatedWorkspace).isEqualTo(workspace);
+        assertThat(updatedWorkspace.getName()).isEqualTo(workspace.getName());
     }
 }

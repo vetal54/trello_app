@@ -16,7 +16,7 @@ import java.util.UUID;
 @Entity
 public class Comment extends Resource {
 
-    String text;
+    String context;
     Timestamp date;
     UUID cardId;
 

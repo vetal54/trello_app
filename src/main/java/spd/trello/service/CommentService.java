@@ -17,7 +17,7 @@ public class CommentService extends AbstractService<Comment, CommentRepository> 
 
     public Comment create(String text, String email, UUID id) {
         Comment comment = new Comment();
-        comment.setText(text);
+        comment.setContext(text);
         comment.setDate(Timestamp.valueOf(LocalDateTime.now()));
         comment.setCreateBy(email);
         comment.setCardId(id);
