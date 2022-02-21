@@ -3,7 +3,6 @@ package spd.trello.service;
 import org.springframework.stereotype.Service;
 import spd.trello.domian.Workspace;
 import spd.trello.domian.type.WorkspaceVisibility;
-import spd.trello.exeption.ResourceNotFoundException;
 import spd.trello.repository.WorkspaceRepository;
 
 @Service
@@ -19,7 +18,6 @@ public class WorkspaceService extends AbstractService<Workspace, WorkspaceReposi
         workspace.setCreateBy(email);
         workspace.setVisibility(ws);
         workspace.setDescription(description);
-        repository.save(workspace);
-        return repository.findById(workspace.getId()).orElseThrow(ResourceNotFoundException::new);
+        return repository.save(workspace);
     }
 }

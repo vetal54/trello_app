@@ -43,7 +43,6 @@ public class CardService extends AbstractService<Card, CardRepository> {
         card.setCreateBy(email);
         card.setDescription(description);
         card.setCardListId(id);
-        repository.save(card);
-        return repository.getById(card.getId());
+        return repository.save(card);
     }
 }

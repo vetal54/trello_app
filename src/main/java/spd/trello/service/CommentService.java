@@ -21,7 +21,6 @@ public class CommentService extends AbstractService<Comment, CommentRepository> 
         comment.setDate(Timestamp.valueOf(LocalDateTime.now()));
         comment.setCreateBy(email);
         comment.setCardId(id);
-        repository.save(comment);
-        return repository.getById(comment.getId());
+        return repository.save(comment);
     }
 }

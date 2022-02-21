@@ -1,7 +1,7 @@
 package spd.trello.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -177,11 +177,15 @@ class CardControllerTest {
     }
 
     @Test
-    @Disabled
     void cardUpdatedById() throws Exception {
+        when(service.findById(card.getId()))
+                .thenReturn(card);
+
+        ObjectMapper mapper = new ObjectMapper();
+
         mockMvc.perform(
-                put("/card/5a50f8d0-03c0-4dc5-9fd5-4f2a1a0f6307")
-                        .contentType(MediaType.APPLICATION_JSON).content(updateJson)
-        ).andExpect(status().is(201));
+                put("/card/" + card.getId().toString())
+                        .contentType(MediaType.APPLICATION_JSON).content(mapper.writeValueAsString(card))
+        ).andExpect(status().isOk());
     }
 }

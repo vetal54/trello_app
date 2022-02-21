@@ -10,5 +10,5 @@ CREATE TABLE board
     create_date  TIMESTAMP    NOT NULL,
     update_date  TIMESTAMP,
     workspace_id UUID,
-    CONSTRAINT fk_workspace_to_board FOREIGN KEY (workspace_id) REFERENCES "workspace" (id)
+    CONSTRAINT fk_workspace_to_board FOREIGN KEY (workspace_id) REFERENCES "workspace" (id) ON DELETE CASCADE
 );

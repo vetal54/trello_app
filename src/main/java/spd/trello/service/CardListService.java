@@ -18,7 +18,6 @@ public class CardListService extends AbstractService<CardList, CardListRepositor
         cardList.setName(name);
         cardList.setCreateBy(email);
         cardList.setBoardId(id);
-        repository.save(cardList);
-        return repository.getById(cardList.getId());
+        return repository.save(cardList);
     }
 }

@@ -18,7 +18,6 @@ public class BoardService extends AbstractService<Board, BoardRepository> {
         board.setName(name);
         board.setCreateBy(email);
         board.setWorkspaceId(id);
-        repository.save(board);
-        return repository.getById(board.getId());
+        return repository.save(board);
     }
 }
