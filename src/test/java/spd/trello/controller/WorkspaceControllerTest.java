@@ -12,10 +12,12 @@ import spd.trello.domian.type.WorkspaceVisibility;
 import spd.trello.exeption.ResourceNotFoundException;
 import spd.trello.service.WorkspaceService;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.UUID;
 
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.times;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -33,26 +35,26 @@ class WorkspaceControllerTest {
     private MockMvc mockMvc;
     private Workspace workspace;
 
-   private final String json = """
-           {
-             "createBy": "string",
-             "description": "string",
-             "name": "string",
-             "visibility": "PRIVATE"
-           }""";
+    private final String json = """
+            {
+              "createBy": "string",
+              "description": "string",
+              "name": "string",
+              "visibility": "PRIVATE"
+            }""";
 
-   private final String updateJson = """
-           {
-               "id": "6ca7d536-7a99-4936-b97c-7a9e1e6f01d1",
-               "createBy": "string",
-               "updateBy": "vitaliy",
-               "createDate": "2022-02-18T13:35:02.528+00:00",
-               "updateDate": null,
-               "name": "spd",
-               "description": "string",
-               "visibility": "PRIVATE",
-               "boards": []
-           }""";
+    private final String updateJson = """
+            {
+                "id": "6ca7d536-7a99-4936-b97c-7a9e1e6f01d1",
+                "createBy": "string",
+                "updateBy": "vitaliy",
+                "createDate": "2022-02-18T13:35:02.528+00:00",
+                "updateDate": null,
+                "name": "spd",
+                "description": "string",
+                "visibility": "PRIVATE",
+                "boards": []
+            }""";
 
     @BeforeEach
     void init() {
@@ -102,6 +104,30 @@ class WorkspaceControllerTest {
                 .andExpect(jsonPath("$.name").value("string"))
                 .andExpect(jsonPath("$.createBy").value("string"))
                 .andReturn();
+    }
+
+    @Test
+    void workspaceFindAllEmptyList() throws Exception {
+        when(service.findAll()).thenReturn(Collections.emptyList());
+
+        mockMvc.perform(get("/workspace"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").exists());
+
+        verify(service, times(1)).findAll();
+    }
+
+    @Test
+    void workspaceFindAll() throws Exception {
+        when(service.findAll()).thenReturn(List.of(workspace));
+
+        mockMvc.perform(get("/workspace"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].id").value(workspace.getId().toString()))
+                .andExpect(jsonPath("$[0].name").value("string"))
+                .andExpect(jsonPath("$[0].createBy").value("string"));
+
+        verify(service, times(1)).findAll();
     }
 
     @Test

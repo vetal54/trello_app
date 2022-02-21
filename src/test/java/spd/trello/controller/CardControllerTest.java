@@ -11,10 +11,12 @@ import spd.trello.domian.Card;
 import spd.trello.exeption.ResourceNotFoundException;
 import spd.trello.service.CardService;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.UUID;
 
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.times;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -125,6 +127,30 @@ class CardControllerTest {
                 .andExpect(jsonPath("$.name").value("string"))
                 .andExpect(jsonPath("$.createBy").value("string"))
                 .andReturn();
+    }
+
+    @Test
+    void cardFindAllEmptyList() throws Exception {
+        when(service.findAll()).thenReturn(Collections.emptyList());
+
+        mockMvc.perform(get("/card"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").exists());
+
+        verify(service, times(1)).findAll();
+    }
+
+    @Test
+    void cardFindAll() throws Exception {
+        when(service.findAll()).thenReturn(List.of(card));
+
+        mockMvc.perform(get("/card"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].id").value(card.getId().toString()))
+                .andExpect(jsonPath("$[0].name").value("string"))
+                .andExpect(jsonPath("$[0].createBy").value("string"));
+
+        verify(service, times(1)).findAll();
     }
 
     @Test

@@ -12,14 +12,14 @@ import spd.trello.domian.type.BoardVisibility;
 import spd.trello.exeption.ResourceNotFoundException;
 import spd.trello.service.BoardService;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.UUID;
 
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(BoardController.class)
 class BoardControllerTest {
@@ -105,6 +105,30 @@ class BoardControllerTest {
                 .andExpect(jsonPath("$.name").value("string"))
                 .andExpect(jsonPath("$.createBy").value("string"))
                 .andReturn();
+    }
+
+    @Test
+    void boardFindAllEmptyList() throws Exception {
+        when(service.findAll()).thenReturn(Collections.emptyList());
+
+        mockMvc.perform(get("/board"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").exists());
+
+        verify(service, times(1)).findAll();
+    }
+
+    @Test
+    void boardFindAll() throws Exception {
+        when(service.findAll()).thenReturn(List.of(board));
+
+        mockMvc.perform(get("/board"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].id").value(board.getId().toString()))
+                .andExpect(jsonPath("$[0].name").value("string"))
+                .andExpect(jsonPath("$[0].createBy").value("string"));
+
+        verify(service, times(1)).findAll();
     }
 
     @Test
