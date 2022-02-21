@@ -1,6 +1,7 @@
 package spd.trello.controller;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -154,6 +155,7 @@ class BoardControllerTest {
     }
 
     @Test
+    @Disabled
     void boardUpdatedById() throws Exception {
         mockMvc.perform(
                 put("/board/1c3edb28-5d9e-4dde-9f67-1fb37a706f8f")
