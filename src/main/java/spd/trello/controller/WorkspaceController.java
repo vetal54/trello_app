@@ -7,7 +7,7 @@ import spd.trello.service.WorkspaceService;
 
 @RestController
 @RequestMapping("/workspace")
-public class WorkspaceController extends AbstractController<Workspace, WorkspaceService> {
+public class WorkspaceController extends AbstractResourceController<Workspace, WorkspaceService> {
 
     public WorkspaceController(WorkspaceService service) {
         super(service);

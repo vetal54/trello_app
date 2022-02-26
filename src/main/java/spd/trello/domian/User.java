@@ -1,11 +1,14 @@
 package spd.trello.domian;
 
+import com.fasterxml.jackson.databind.deser.std.UUIDDeserializer;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 import org.hibernate.Hibernate;
 import spd.trello.domian.common.Domain;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.Table;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -13,12 +16,17 @@ import java.util.UUID;
 @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @Entity
+@Table(name = "user_table")
 public class User extends Domain {
 
+    @Column(name = "first_name")
     String firstName;
+    @Column(name = "last_name")
     String lastName;
+    @Column(name = "email")
     String email;
-    UUID workspaceId;
+
+    //UUID workspaceId;
 
     @Override
     public boolean equals(Object o) {

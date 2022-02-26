@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.UUID;
 
 @Service
-public class CardService extends AbstractService<Card, CardRepository> {
+public class CardService extends AbstractResourceService<Card, CardRepository> {
 
     public CardService(CardRepository repository) {
         super(repository);

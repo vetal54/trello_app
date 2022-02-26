@@ -3,18 +3,20 @@ package spd.trello.controller;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import spd.trello.domian.common.Domain;
 import spd.trello.domian.common.Resource;
 import spd.trello.exeption.ResourceNotFoundException;
+import spd.trello.service.AbstractDomainService;
 import spd.trello.service.CommonService;
 
 import java.util.List;
 import java.util.UUID;
 
-public class AbstractController<E extends Resource, S extends CommonService<E>> implements CommonController<E> {
+public class AbstractDomainController<E extends Domain, S extends CommonService<E>> implements CommonController<E> {
 
     S service;
 
-    public AbstractController(S service) {
+    public AbstractDomainController(S service) {
         this.service = service;
     }
 
@@ -31,7 +33,6 @@ public class AbstractController<E extends Resource, S extends CommonService<E>> 
         E entity = service.findById(id);
         if (entity == null) throw new ResourceNotFoundException();
         resource.setId(id);
-        resource.setCreateDate(entity.getCreateDate());
         E result = service.update(resource);
         return new ResponseEntity(result, HttpStatus.OK);
     }

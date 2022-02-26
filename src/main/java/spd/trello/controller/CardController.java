@@ -7,7 +7,7 @@ import spd.trello.service.CardService;
 
 @RestController
 @RequestMapping("/card")
-public class CardController extends AbstractController<Card, CardService> {
+public class CardController extends AbstractResourceController<Card, CardService> {
 
     public CardController(CardService service) {
         super(service);

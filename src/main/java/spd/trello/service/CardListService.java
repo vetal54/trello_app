@@ -7,7 +7,7 @@ import spd.trello.repository.CardListRepository;
 import java.util.UUID;
 
 @Service
-public class CardListService extends AbstractService<CardList, CardListRepository> {
+public class CardListService extends AbstractResourceService<CardList, CardListRepository> {
 
     public CardListService(CardListRepository repository) {
         super(repository);

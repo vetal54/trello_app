@@ -18,7 +18,6 @@ import java.util.UUID;
 
 @Getter
 @Setter
-@RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @Entity
 @Table(name = "card_list")

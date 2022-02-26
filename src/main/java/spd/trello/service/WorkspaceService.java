@@ -6,7 +6,7 @@ import spd.trello.domian.type.WorkspaceVisibility;
 import spd.trello.repository.WorkspaceRepository;
 
 @Service
-public class WorkspaceService extends AbstractService<Workspace, WorkspaceRepository> {
+public class WorkspaceService extends AbstractResourceService<Workspace, WorkspaceRepository> {
 
     public WorkspaceService(WorkspaceRepository repository) {
         super(repository);

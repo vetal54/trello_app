@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Service
-public class CommentService extends AbstractService<Comment, CommentRepository> {
+public class CommentService extends AbstractResourceService<Comment, CommentRepository> {
 
     public CommentService(CommentRepository repository) {
         super(repository);

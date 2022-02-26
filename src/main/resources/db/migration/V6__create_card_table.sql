@@ -8,6 +8,6 @@ CREATE TABLE card
     update_by   VARCHAR(255),
     create_date TIMESTAMP    NOT NULL,
     update_date TIMESTAMP,
-    cardList_id UUID,
-    CONSTRAINT fk_cardList_to_card FOREIGN KEY (cardList_id) REFERENCES "card_list" (id) ON DELETE CASCADE
+    cardlist_id UUID,
+    CONSTRAINT fk_cardList FOREIGN KEY (cardlist_id) REFERENCES "card_list" (id) ON DELETE CASCADE
 );
