@@ -11,10 +11,8 @@ import org.hibernate.annotations.LazyCollectionOption;
 import spd.trello.domian.common.Resource;
 
 import javax.persistence.*;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.UUID;
+import javax.validation.constraints.NotEmpty;
+import java.util.*;
 
 @Getter
 @Setter
@@ -23,6 +21,7 @@ import java.util.UUID;
 @Table(name = "card_list")
 public class CardList extends Resource {
 
+    @NotEmpty(message = "Name should not be empty")
     @Column(name = "name")
     String name;
 
@@ -39,7 +38,7 @@ public class CardList extends Resource {
             joinColumns = @JoinColumn(name = "cardlist_id")
     )
     @Column(name = "id")
-    List<UUID> cards = new ArrayList<>();
+    Set<UUID> cards = new HashSet<>();
 
     @Override
     public boolean equals(Object o) {

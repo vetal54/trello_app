@@ -4,9 +4,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import spd.trello.domian.common.Domain;
-import spd.trello.domian.common.Resource;
 import spd.trello.exeption.ResourceNotFoundException;
-import spd.trello.service.AbstractDomainService;
 import spd.trello.service.CommonService;
 
 import java.util.List;
@@ -24,7 +22,7 @@ public class AbstractDomainController<E extends Domain, S extends CommonService<
     @Override
     public ResponseEntity<E> create(@RequestBody E resource) {
         E result = service.save(resource);
-        return new ResponseEntity(result, HttpStatus.CREATED);
+        return new ResponseEntity<>(result, HttpStatus.CREATED);
     }
 
     @PutMapping("/{id}")
@@ -34,7 +32,7 @@ public class AbstractDomainController<E extends Domain, S extends CommonService<
         if (entity == null) throw new ResourceNotFoundException();
         resource.setId(id);
         E result = service.update(resource);
-        return new ResponseEntity(result, HttpStatus.OK);
+        return new ResponseEntity<>(result, HttpStatus.OK);
     }
 
     @DeleteMapping("/{id}")
@@ -48,7 +46,7 @@ public class AbstractDomainController<E extends Domain, S extends CommonService<
     @Override
     public ResponseEntity<E> readById(@PathVariable UUID id) {
         E result = service.findById(id);
-        return new ResponseEntity(result, HttpStatus.OK);
+        return new ResponseEntity<>(result, HttpStatus.OK);
     }
 
     @GetMapping

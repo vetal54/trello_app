@@ -7,6 +7,7 @@ import org.hibernate.Hibernate;
 import spd.trello.domian.common.Domain;
 
 import javax.persistence.*;
+import javax.validation.constraints.NotEmpty;
 import java.util.Objects;
 
 @Getter
@@ -16,10 +17,12 @@ import java.util.Objects;
 @Table(name = "checkable_item")
 public class Item extends Domain {
 
+    @NotEmpty(message = "Name should not be empty")
     @Column(name = "name")
     String name;
+
     @Column(name = "checked")
-    Boolean checked;
+    Boolean checked = false;
 
     @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @JoinColumn(name = "check_list_id", referencedColumnName = "id")

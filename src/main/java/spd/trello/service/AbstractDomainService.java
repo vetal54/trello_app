@@ -1,7 +1,6 @@
 package spd.trello.service;
 
 import spd.trello.domian.common.Domain;
-import spd.trello.domian.common.Resource;
 import spd.trello.exeption.ResourceNotFoundException;
 import spd.trello.repository.AbstractRepository;
 

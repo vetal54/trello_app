@@ -9,6 +9,7 @@ import spd.trello.domian.common.Resource;
 import spd.trello.domian.type.WorkspaceVisibility;
 
 import javax.persistence.*;
+import javax.validation.constraints.NotEmpty;
 import java.util.*;
 
 @Getter
@@ -19,23 +20,26 @@ import java.util.*;
 @Table(name = "workspace")
 public class Workspace extends Resource {
 
+    @NotEmpty(message = "Name should not be empty")
     @Column(name = "name")
     String name;
 
+    @NotEmpty(message = "Description should not be empty")
     @Column(name = "description")
     String description;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "visibility")
     WorkspaceVisibility visibility;
 
     @ElementCollection
     @LazyCollection(LazyCollectionOption.FALSE)
     @CollectionTable(
-            name = "board",
+            name = "workspace_to_member",
             joinColumns = @JoinColumn(name = "workspace_id")
     )
-    @Column(name = "id")
-    Set<UUID> boards = new HashSet<>();
+    @Column(name = "member_id")
+    Set<UUID> memberIds = new HashSet<>();
 
     @Override
     public boolean equals(Object o) {

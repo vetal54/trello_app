@@ -1,6 +1,6 @@
 package spd.trello.service;
 
-import spd.trello.domian.common.Domain;
+import lombok.NoArgsConstructor;
 import spd.trello.domian.common.Resource;
 import spd.trello.exeption.ResourceNotFoundException;
 import spd.trello.repository.AbstractRepository;
@@ -8,6 +8,7 @@ import spd.trello.repository.AbstractRepository;
 import java.util.List;
 import java.util.UUID;
 
+@NoArgsConstructor
 public abstract class AbstractResourceService<E extends Resource, R extends AbstractRepository<E>> implements CommonService<E> {
 
     protected R repository;

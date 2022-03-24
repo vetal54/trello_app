@@ -8,6 +8,7 @@ import org.hibernate.Hibernate;
 import spd.trello.domian.common.Domain;
 
 import javax.persistence.*;
+import javax.validation.constraints.NotEmpty;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -19,6 +20,7 @@ import java.util.Objects;
 @Table(name = "check_list")
 public class CheckList extends Domain {
 
+    @NotEmpty(message = "Name should not be empty")
     @Column(name = "name")
     String name;
 

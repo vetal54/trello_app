@@ -27,6 +27,8 @@ class CardServiceTest {
 
     @Mock
     private CardRepository repository;
+    @Mock
+    private ReminderService reminderService;
     private Card card;
     private CardService service;
 
@@ -42,7 +44,7 @@ class CardServiceTest {
     @BeforeEach
     void init() {
         MockitoAnnotations.openMocks(this);
-        service = new CardService(repository);
+        service = new CardService(repository, reminderService);
         create();
     }
 

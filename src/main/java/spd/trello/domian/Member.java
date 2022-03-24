@@ -7,6 +7,8 @@ import spd.trello.domian.common.Domain;
 import spd.trello.domian.type.Role;
 
 import javax.persistence.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -16,8 +18,6 @@ import java.util.UUID;
 @Entity
 @Table(name = "member")
 public class Member extends Domain {
-
-    //User user;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "role")

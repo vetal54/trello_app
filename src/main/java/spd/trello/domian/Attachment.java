@@ -2,16 +2,43 @@ package spd.trello.domian;
 
 import lombok.*;
 import lombok.experimental.FieldDefaults;
+import org.hibernate.Hibernate;
 import spd.trello.domian.common.Resource;
 
-import java.io.File;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Table;
+import java.util.Objects;
+import java.util.UUID;
 
-@Data
-@EqualsAndHashCode(callSuper = true)
+@Getter
+@Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
+@Entity
+@Table(name = "attachment")
 public class Attachment extends Resource {
+
+    @Column(name = "link")
     String link;
+
+    @Column(name = "name")
     String name;
-    File file;
+
+    UUID cardId;
+
+    UUID commentId;
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) return false;
+        Attachment that = (Attachment) o;
+        return getId() != null && Objects.equals(getId(), that.getId());
+    }
+
+    @Override
+    public int hashCode() {
+        return getClass().hashCode();
+    }
 }
 

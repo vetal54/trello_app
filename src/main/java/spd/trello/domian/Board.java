@@ -9,10 +9,8 @@ import spd.trello.domian.common.Resource;
 import spd.trello.domian.type.BoardVisibility;
 
 import javax.persistence.*;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.UUID;
+import javax.validation.constraints.NotEmpty;
+import java.util.*;
 
 @Getter
 @Setter
@@ -21,12 +19,14 @@ import java.util.UUID;
 @Table(name = "board")
 public class Board extends Resource {
 
+    @NotEmpty(message = "Name should not be empty")
     @Column(name = "name")
     String name;
 
     @Column(name = "description")
     String description;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "visibility")
     BoardVisibility visibility;
 
@@ -39,11 +39,11 @@ public class Board extends Resource {
     @ElementCollection
     @LazyCollection(LazyCollectionOption.FALSE)
     @CollectionTable(
-            name = "card_list",
+            name = "board_to_member",
             joinColumns = @JoinColumn(name = "board_id")
     )
-    @Column(name = "id")
-    List<UUID> cardLists = new ArrayList<>();
+    @Column(name = "member_id")
+    Set<UUID> memberIds = new HashSet<>();
 
     @Override
     public boolean equals(Object o) {
