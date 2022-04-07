@@ -11,12 +11,9 @@ import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.http.*;
 import org.springframework.test.context.jdbc.Sql;
+import spd.trello.Helper;
 import spd.trello.domian.Board;
-import spd.trello.domian.Workspace;
 import spd.trello.domian.type.BoardVisibility;
-import spd.trello.domian.type.WorkspaceVisibility;
-import spd.trello.service.BoardService;
-import spd.trello.service.WorkspaceService;
 
 import java.util.Collections;
 import java.util.List;
@@ -29,46 +26,39 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 class BoardControllerIntegrationTest {
 
     @Autowired
+    private Helper helper;
+    @Autowired
     private TestRestTemplate restTemplate;
 
     @LocalServerPort
     private int port;
 
-    private Board board;
-
     private final HttpHeaders headers = new HttpHeaders();
-
     private final ObjectMapper mapper = new ObjectMapper();
-
-    @Autowired
-    private BoardService service;
-
-    @Autowired
-    private WorkspaceService workspaceService;
 
     private String getRootUrl() {
         return "http://localhost:" + port;
     }
 
     @Test
-    void boardSave() throws JsonProcessingException, JSONException {
+    void boardSave() {
         Board board = new Board();
         board.setName("name");
-        board.setCreateBy("email");
+        board.setCreateBy("email@gmail.com");
         board.setDescription("description");
         board.setVisibility(BoardVisibility.PRIVATE);
-        board.setWorkspaceId(saveWorkspace().getId());
+        board.setWorkspaceId(helper.createWorkspace().getId());
 
-        ResponseEntity<String> response = restTemplate
-                .postForEntity(getRootUrl() + "/board", board, String.class);
+        ResponseEntity<Board> response = restTemplate
+                .postForEntity(getRootUrl() + "/board", board, Board.class);
 
-        JSONAssert.assertEquals(mapper.writeValueAsString(board), response.getBody(), false);
+        assertEquals(board, response.getBody());
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
     }
 
     @Test
     void boardFindAllNotEmpty() throws JSONException, JsonProcessingException {
-        saveBoard();
+        Board board = helper.createBoard();
 
         HttpEntity<String> entity = new HttpEntity<>(null, headers);
 
@@ -92,7 +82,7 @@ class BoardControllerIntegrationTest {
 
     @Test
     void boardFindById() throws JSONException, JsonProcessingException {
-        saveBoard();
+        Board board = helper.createBoard();
 
         ResponseEntity<String> response = restTemplate.getForEntity(
                 "/board/" + board.getId().toString(), String.class);
@@ -111,7 +101,7 @@ class BoardControllerIntegrationTest {
 
     @Test
     void boardUpdate() throws JsonProcessingException, JSONException {
-        saveBoard();
+        Board board = helper.createBoard();
         board.setName("new Name");
 
         HttpEntity<Board> request = new HttpEntity<>(board, HttpHeaders.EMPTY);
@@ -125,30 +115,11 @@ class BoardControllerIntegrationTest {
 
     @Test
     void boardDeleteById() {
-        saveBoard();
+        Board board = helper.createBoard();
 
         ResponseEntity<String> response = restTemplate.exchange(
                 "/board/" + board.getId().toString(), HttpMethod.DELETE, HttpEntity.EMPTY, String.class);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
-    }
-
-    private void saveBoard() {
-        board = service.create(
-                "name",
-                "email",
-                "description",
-                BoardVisibility.PRIVATE,
-                saveWorkspace().getId()
-        );
-    }
-
-    private Workspace saveWorkspace() {
-        return workspaceService.create(
-                "name",
-                "email",
-                WorkspaceVisibility.PRIVATE,
-                "description"
-        );
     }
 }

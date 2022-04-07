@@ -1,19 +1,23 @@
 package spd.trello.domian.common;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
+import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 import org.hibernate.Hibernate;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+import spd.trello.annotation.EmailValidation;
 
 import javax.persistence.Column;
 import javax.persistence.EntityListeners;
 import javax.persistence.MappedSuperclass;
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotEmpty;
-import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.Objects;
 
@@ -24,7 +28,7 @@ import java.util.Objects;
 @EntityListeners(AuditingEntityListener.class)
 public class Resource extends Domain {
 
-    @Email
+    @EmailValidation
     @Column(name = "create_by")
     @NotEmpty(message = "Email should not be empty")
     String createBy;
@@ -34,13 +38,17 @@ public class Resource extends Domain {
     String updateBy;
 
     @CreatedDate
+    @JsonDeserialize(using = LocalDateTimeDeserializer.class)
+    @JsonSerialize(using = LocalDateTimeSerializer.class)
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss.SSS")
     @Column(updatable = false)
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "MMM dd, yyyy hh:mm:ss a", timezone = "UTC")
-    Timestamp createDate = Timestamp.valueOf(LocalDateTime.now());
+    LocalDateTime createDate = LocalDateTime.now();
 
     @LastModifiedDate
+    @JsonDeserialize(using = LocalDateTimeDeserializer.class)
+    @JsonSerialize(using = LocalDateTimeSerializer.class)
     @Column(name = "update_date")
-    Timestamp updateDate;
+    LocalDateTime updateDate;
 
     @Override
     public boolean equals(Object o) {

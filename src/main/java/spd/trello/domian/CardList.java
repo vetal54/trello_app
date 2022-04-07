@@ -2,7 +2,6 @@ package spd.trello.domian;
 
 import lombok.AccessLevel;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.FieldDefaults;
 import org.hibernate.Hibernate;
@@ -12,6 +11,7 @@ import spd.trello.domian.common.Resource;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.Size;
 import java.util.*;
 
 @Getter
@@ -22,6 +22,7 @@ import java.util.*;
 public class CardList extends Resource {
 
     @NotEmpty(message = "Name should not be empty")
+    @Size(min = 2, max = 30)
     @Column(name = "name")
     String name;
 

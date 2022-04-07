@@ -11,14 +11,8 @@ import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.http.*;
 import org.springframework.test.context.jdbc.Sql;
-import spd.trello.domian.Board;
+import spd.trello.Helper;
 import spd.trello.domian.CardList;
-import spd.trello.domian.Workspace;
-import spd.trello.domian.type.BoardVisibility;
-import spd.trello.domian.type.WorkspaceVisibility;
-import spd.trello.service.BoardService;
-import spd.trello.service.CardListService;
-import spd.trello.service.WorkspaceService;
 
 import java.util.Collections;
 import java.util.List;
@@ -31,47 +25,37 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 class CardListControllerIntegrationTest {
 
     @Autowired
+    private Helper helper;
+    @Autowired
     private TestRestTemplate restTemplate;
 
     @LocalServerPort
     private int port;
 
-    private CardList cardList;
-
     private final HttpHeaders headers = new HttpHeaders();
-
     private final ObjectMapper mapper = new ObjectMapper();
-
-    @Autowired
-    private CardListService service;
-
-    @Autowired
-    private BoardService boardService;
-
-    @Autowired
-    private WorkspaceService workspaceService;
 
     private String getRootUrl() {
         return "http://localhost:" + port;
     }
 
     @Test
-    void cardListSave() throws JsonProcessingException, JSONException {
+    void cardListSave() {
         CardList cardList = new CardList();
         cardList.setName("name");
-        cardList.setCreateBy("email");
-        cardList.setBoardId(saveBoard().getId());
+        cardList.setCreateBy("email@gmail.com");
+        cardList.setBoardId(helper.createBoard().getId());
 
-        ResponseEntity<String> response = restTemplate
-                .postForEntity(getRootUrl() + "/card-list", cardList, String.class);
+        ResponseEntity<CardList> response = restTemplate
+                .postForEntity(getRootUrl() + "/card-list", cardList, CardList.class);
 
-        JSONAssert.assertEquals(mapper.writeValueAsString(cardList), response.getBody(), false);
+        assertEquals(cardList, response.getBody());
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
     }
 
     @Test
     void cardListFindAllNotEmpty() throws JSONException, JsonProcessingException {
-        saveCardList();
+        CardList cardList = helper.createCardList();
 
         HttpEntity<String> entity = new HttpEntity<>(null, headers);
 
@@ -95,7 +79,7 @@ class CardListControllerIntegrationTest {
 
     @Test
     void cardListFindById() throws JSONException, JsonProcessingException {
-        saveCardList();
+        CardList cardList = helper.createCardList();
 
         ResponseEntity<String> response = restTemplate.getForEntity(
                 "/card-list/" + cardList.getId().toString(), String.class);
@@ -115,7 +99,7 @@ class CardListControllerIntegrationTest {
 
     @Test
     void cardListUpdate() throws JsonProcessingException, JSONException {
-        saveCardList();
+        CardList cardList = helper.createCardList();
 
         cardList.setName("new Name");
         HttpEntity<CardList> request = new HttpEntity<>(cardList, HttpHeaders.EMPTY);
@@ -129,38 +113,11 @@ class CardListControllerIntegrationTest {
 
     @Test
     void cardListDeleteById() {
-        saveCardList();
+        CardList cardList = helper.createCardList();
 
         ResponseEntity<String> response = restTemplate.exchange(
                 "/card-list/" + cardList.getId().toString(), HttpMethod.DELETE, HttpEntity.EMPTY, String.class);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
-    }
-
-    private void saveCardList() {
-        cardList = service.create(
-                "name",
-                "email",
-                saveBoard().getId()
-        );
-    }
-
-    private Board saveBoard() {
-        return boardService.create(
-                "name",
-                "email",
-                "description",
-                BoardVisibility.PRIVATE,
-                saveWorkspace().getId()
-        );
-    }
-
-    private Workspace saveWorkspace() {
-        return workspaceService.create(
-                "name",
-                "email",
-                WorkspaceVisibility.PRIVATE,
-                "description"
-        );
     }
 }

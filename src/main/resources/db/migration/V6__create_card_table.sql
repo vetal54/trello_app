@@ -9,5 +9,5 @@ CREATE TABLE card
     create_date TIMESTAMP    NOT NULL,
     update_date TIMESTAMP,
     cardlist_id UUID,
-    CONSTRAINT fk_cardList FOREIGN KEY (cardlist_id) REFERENCES "card_list" (id) ON DELETE CASCADE
+    CONSTRAINT fk_cardlist_to_card FOREIGN KEY (cardlist_id) REFERENCES "card_list" (id) ON DELETE CASCADE
 );

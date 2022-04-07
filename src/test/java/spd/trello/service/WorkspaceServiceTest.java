@@ -1,102 +1,103 @@
 package spd.trello.service;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
-import org.mockito.junit.jupiter.MockitoExtension;
-import spd.trello.domian.type.WorkspaceVisibility;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.jdbc.Sql;
+import spd.trello.Helper;
 import spd.trello.domian.Workspace;
+import spd.trello.domian.type.WorkspaceVisibility;
 import spd.trello.exeption.ResourceNotFoundException;
-import spd.trello.repository.WorkspaceRepository;
 
-import java.util.*;
+import javax.validation.*;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
-@ExtendWith(MockitoExtension.class)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
+@Sql(statements = "DELETE FROM workspace")
 class WorkspaceServiceTest {
 
-    @Mock
-    private WorkspaceRepository repository;
-    private Workspace workspace;
+    @Autowired
     private WorkspaceService service;
+    @Autowired
+    private Helper helper;
 
-    void create() {
-        workspace = new Workspace();
-        workspace.setName("vitaliy");
-        workspace.setCreateBy("@gmail");
+    @Test
+    void workspaceWasSaved() {
+        Workspace workspace = helper.createWorkspace();
+        Workspace workspaceSave = service.findById(workspace.getId());
+        assertThat(workspaceSave).isEqualTo(workspace);
+    }
+
+    @Test
+    void workspaceNotSavedEmptyName() {
+        Workspace workspace = new Workspace();
+        workspace.setName("");
+        workspace.setCreateBy("string@gmail.com");
         workspace.setVisibility(WorkspaceVisibility.PRIVATE);
-        workspace.setDescription("hello");
-    }
+        workspace.setDescription("description");
 
-    @BeforeEach
-    void init() {
-        MockitoAnnotations.openMocks(this);
-        service = new WorkspaceService(repository);
-        create();
-    }
+        ValidatorFactory validatorFactory = Validation.buildDefaultValidatorFactory();
+        Validator validator = validatorFactory.getValidator();
 
-    @Test
-    void workspaceSave() {
-        when(repository.save(Mockito.any(Workspace.class))).thenReturn(workspace);
-        Workspace savedWorkspace = repository.save(workspace);
-        assertThat(savedWorkspace).isEqualTo(workspace);
+        Set<ConstraintViolation<Workspace>> violations = validator.validate(workspace);
+
+        assertFalse(violations.isEmpty());
     }
 
     @Test
-    void emptyListOfWorkspaces() {
-        when(repository.findAll()).thenReturn(Collections.emptyList());
+    void emptyListOfWorkspacesIsReturned() {
         List<Workspace> workspaces = service.findAll();
+
         assertThat(workspaces).isEmpty();
     }
 
     @Test
-    void oneElementOfListWorkspaces() {
-        when(repository.findAll()).thenReturn(
-                List.of(
-                        workspace
-                )
-        );
+    void notEmptyListOfWorkspacesIsReturned() {
+        Workspace workspace = helper.createWorkspace();
+
         List<Workspace> workspaces = service.findAll();
-        assertThat(workspaces).isEqualTo(List.of(workspace));
+
+        assertThat(workspaces).isNotEmpty();
     }
 
     @Test
     void workspaceWasNotFoundById() {
-        when(repository.findById(workspace.getId()))
-                .thenReturn(Optional.empty());
+        assertThatCode(() -> service.findById(UUID.randomUUID()))
+                .isInstanceOf(ResourceNotFoundException.class);
+    }
+
+    @Test
+    void workspaceWasFoundById() {
+        Workspace workspace = helper.createWorkspace();
+
+        Workspace workspaceFindById = service.findById(workspace.getId());
+
+        assertThat(workspaceFindById).isEqualTo(workspace);
+    }
+
+    @Test
+    void workspaceWasDeleted() {
+        Workspace workspace = helper.createWorkspace();
+
+        service.delete(workspace.getId());
 
         assertThatCode(() -> service.findById(workspace.getId()))
                 .isInstanceOf(ResourceNotFoundException.class);
     }
 
     @Test
-    void workspaceWasFoundById() {
-        when(repository.findById(workspace.getId())).thenReturn(
-                Optional.of(workspace)
-        );
-        Workspace workspaceFindById = service.findById(workspace.getId());
-        assertThat(workspaceFindById).isEqualTo(workspace);
-    }
-
-    @Test
-    void workspaceWasDeleted() {
-        service.delete(workspace.getId());
-        verify(repository).deleteById(workspace.getId());
-    }
-
-    @Test
     void workspaceWasUpdated() {
-        when(repository.save(workspace))
-                .thenReturn(workspace);
-        workspace.setName("new Name");
-        Workspace updatedWorkspace = service.save(workspace);
-        assertThat(updatedWorkspace.getName()).isEqualTo(workspace.getName());
+        Workspace savedWorkspace = helper.createWorkspace();
+        savedWorkspace.setName("new Name");
+
+        Workspace updatedWorkspace = service.update(savedWorkspace);
+
+        assertThat(updatedWorkspace.getName()).isEqualTo("new Name");
     }
 }

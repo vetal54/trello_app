@@ -1,13 +1,19 @@
 package spd.trello.domian;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
+import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 import org.hibernate.Hibernate;
 import spd.trello.domian.common.Domain;
 
 import javax.persistence.*;
-import java.sql.Timestamp;
+import javax.validation.constraints.FutureOrPresent;
+import java.time.LocalDateTime;
 import java.util.Objects;
 
 @Getter
@@ -19,14 +25,26 @@ import java.util.Objects;
 @Table(name = "reminder")
 public class Reminder extends Domain {
 
+    @FutureOrPresent
+    @JsonDeserialize(using = LocalDateTimeDeserializer.class)
+    @JsonSerialize(using = LocalDateTimeSerializer.class)
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss.SSS")
     @Column(name = "start_on")
-    Timestamp start;
+    LocalDateTime start;
 
+    @FutureOrPresent
+    @JsonDeserialize(using = LocalDateTimeDeserializer.class)
+    @JsonSerialize(using = LocalDateTimeSerializer.class)
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss.SSS")
     @Column(name = "end_on")
-    Timestamp end;
+    LocalDateTime end;
 
+    @FutureOrPresent
+    @JsonDeserialize(using = LocalDateTimeDeserializer.class)
+    @JsonSerialize(using = LocalDateTimeSerializer.class)
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm")
     @Column(name = "remind_on")
-    Timestamp remindOn;
+    LocalDateTime remindOn;
 
     @Column(name = "active")
     Boolean active = false;

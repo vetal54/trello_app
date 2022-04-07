@@ -1,102 +1,82 @@
 package spd.trello.service;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.jdbc.Sql;
+import spd.trello.Helper;
 import spd.trello.domian.CardList;
 import spd.trello.exeption.ResourceNotFoundException;
-import spd.trello.repository.CardListRepository;
 
-import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
-@ExtendWith(MockitoExtension.class)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
+@Sql(statements = "DELETE FROM card_list")
 class CardListServiceTest {
 
-    @Mock
-    private CardListRepository repository;
-    private CardList cardList;
+    @Autowired
     private CardListService service;
+    @Autowired
+    private Helper helper;
 
-    void create() {
-        cardList = new CardList();
-        cardList.setName("vitaliy");
-        cardList.setCreateBy("@gmail");
-        cardList.setArchived(false);
-    }
-
-    @BeforeEach
-    void init() {
-        MockitoAnnotations.openMocks(this);
-        service = new CardListService(repository);
-        create();
+    @Test
+    void cardListWasSaved() {
+        CardList cardList = helper.createCardList();
+        CardList cardListSave = service.findById(cardList.getId());
+        assertThat(cardListSave).isEqualTo(cardList);
     }
 
     @Test
-    void cardListSave() {
-        when(repository.save(Mockito.any(CardList.class))).thenReturn(cardList);
-        CardList savedCardList = repository.save(cardList);
-        assertThat(savedCardList).isEqualTo(cardList);
-    }
-
-    @Test
-    void emptyListOfCardLists() {
-        when(repository.findAll()).thenReturn(Collections.emptyList());
+    void emptyListOfCardListsIsReturned() {
         List<CardList> cardLists = service.findAll();
+
         assertThat(cardLists).isEmpty();
     }
 
     @Test
-    void oneElementOfListCardLists() {
-        when(repository.findAll()).thenReturn(
-                List.of(
-                        cardList
-                )
-        );
+    void notEmptyListOfCardListsIsReturned() {
+        CardList cardList = helper.createCardList();
+
         List<CardList> cardLists = service.findAll();
-        assertThat(cardLists).isEqualTo(List.of(cardList));
+
+        assertThat(cardLists).isNotEmpty();
     }
 
     @Test
     void cardListWasNotFoundById() {
-        when(repository.findById(cardList.getId()))
-                .thenReturn(Optional.empty());
+        assertThatCode(() -> service.findById(UUID.randomUUID()))
+                .isInstanceOf(ResourceNotFoundException.class);
+    }
+
+    @Test
+    void cardListWasFoundById() {
+        CardList cardList = helper.createCardList();
+        CardList cardListFindById = service.findById(cardList.getId());
+
+        assertThat(cardListFindById).isEqualTo(cardList);
+    }
+
+    @Test
+    void cardListWasDeleted() {
+        CardList cardList = helper.createCardList();
+
+        service.delete(cardList.getId());
 
         assertThatCode(() -> service.findById(cardList.getId()))
                 .isInstanceOf(ResourceNotFoundException.class);
     }
 
     @Test
-    void cardListWasFoundById() {
-        when(repository.findById(cardList.getId())).thenReturn(
-                Optional.of(cardList)
-        );
-        CardList cardListFindById = service.findById(cardList.getId());
-        assertThat(cardListFindById).isEqualTo(cardList);
-    }
-
-    @Test
-    void cardListWasDeleted() {
-        service.delete(cardList.getId());
-        verify(repository).deleteById(cardList.getId());
-    }
-
-    @Test
     void cardListWasUpdated() {
-        when(repository.save(Mockito.any(CardList.class)))
-                .thenReturn(cardList);
-        cardList.setName("new Name");
-        CardList updatedCardList = service.save(cardList);
-        assertThat(updatedCardList.getName()).isEqualTo(cardList.getName());
+        CardList savedCardList = helper.createCardList();
+        savedCardList.setName("new Name");
+
+        CardList updatedCardList = service.update(savedCardList);
+
+        assertThat(updatedCardList.getName()).isEqualTo("new Name");
     }
 }

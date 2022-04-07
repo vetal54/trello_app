@@ -2,14 +2,17 @@ package spd.trello.controller;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import spd.trello.domian.common.Domain;
 import spd.trello.exeption.ResourceNotFoundException;
 import spd.trello.service.CommonService;
 
+import javax.validation.Valid;
 import java.util.List;
 import java.util.UUID;
 
+@Validated
 public class AbstractDomainController<E extends Domain, S extends CommonService<E>> implements CommonController<E> {
 
     S service;
@@ -20,7 +23,7 @@ public class AbstractDomainController<E extends Domain, S extends CommonService<
 
     @PostMapping
     @Override
-    public ResponseEntity<E> create(@RequestBody E resource) {
+    public ResponseEntity<E> create(@Valid @RequestBody E resource) {
         E result = service.save(resource);
         return new ResponseEntity<>(result, HttpStatus.CREATED);
     }

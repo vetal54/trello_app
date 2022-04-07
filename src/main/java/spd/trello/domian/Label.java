@@ -7,6 +7,8 @@ import spd.trello.domian.common.Domain;
 
 import javax.persistence.Entity;
 import javax.persistence.Table;
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.Size;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -17,8 +19,14 @@ import java.util.UUID;
 @Table(name = "label")
 public class Label extends Domain {
 
+    @NotEmpty(message = "Name should be not empty!")
+    @Size(min = 2, max = 30)
     String name;
+
+    @NotEmpty(message = "Color should be not empty!")
+    @Size(min = 5, max = 30)
     String color;
+
     UUID cardId;
 
     @Override

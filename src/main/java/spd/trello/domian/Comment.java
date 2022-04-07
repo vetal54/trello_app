@@ -1,17 +1,12 @@
 package spd.trello.domian;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 import org.hibernate.Hibernate;
-import org.hibernate.annotations.LazyCollection;
-import org.hibernate.annotations.LazyCollectionOption;
 import spd.trello.domian.common.Resource;
 
 import javax.persistence.*;
-import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.List;
+import javax.validation.constraints.Size;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -23,6 +18,7 @@ import java.util.UUID;
 public class Comment extends Resource {
 
     @Column(name = "context")
+    @Size(min = 2, max = 100)
     String context;
 
     @Column(name = "card_id")
@@ -30,16 +26,6 @@ public class Comment extends Resource {
 
     @Column(name = "member_id")
     UUID memberId;
-
-
-//    @ElementCollection
-//    @LazyCollection(LazyCollectionOption.FALSE)
-//    @CollectionTable(
-//            name = "comment",
-//            joinColumns = @JoinColumn(name = "card_id")
-//    )
-//    @Column(name = "id")
-//    List<UUID> attachments = new ArrayList<>();
 
     @Override
     public boolean equals(Object o) {

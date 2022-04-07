@@ -1,16 +1,18 @@
 package spd.trello.domian;
 
-import com.fasterxml.jackson.databind.deser.std.UUIDDeserializer;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 import org.hibernate.Hibernate;
+import spd.trello.annotation.EmailValidation;
 import spd.trello.domian.common.Domain;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Table;
+import javax.validation.constraints.Email;
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.Size;
 import java.util.Objects;
-import java.util.UUID;
 
 @Getter
 @Setter
@@ -19,14 +21,20 @@ import java.util.UUID;
 @Table(name = "user_table")
 public class User extends Domain {
 
+    @NotEmpty(message = "First name should not be empty")
+    @Size(min = 2, max = 30)
     @Column(name = "first_name")
     String firstName;
+
+    @NotEmpty(message = "Last name should not be empty")
+    @Size(min = 2, max = 30)
     @Column(name = "last_name")
     String lastName;
+
+    @EmailValidation
+    @NotEmpty(message = "Email should not be empty")
     @Column(name = "email")
     String email;
-
-    //UUID workspaceId;
 
     @Override
     public boolean equals(Object o) {

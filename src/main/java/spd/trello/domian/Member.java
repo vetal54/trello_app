@@ -7,6 +7,8 @@ import spd.trello.domian.common.Domain;
 import spd.trello.domian.type.Role;
 
 import javax.persistence.*;
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -19,14 +21,13 @@ import java.util.UUID;
 @Table(name = "member")
 public class Member extends Domain {
 
+    @NotNull(message = "Role should not be empty")
     @Enumerated(EnumType.STRING)
     @Column(name = "role")
     Role role;
 
     @Column(name = "user_id")
     UUID userId;
-
-   // UUID boardId;
 
     @Override
     public boolean equals(Object o) {

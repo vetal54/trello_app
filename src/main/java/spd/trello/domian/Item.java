@@ -8,6 +8,7 @@ import spd.trello.domian.common.Domain;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.Size;
 import java.util.Objects;
 
 @Getter
@@ -18,6 +19,7 @@ import java.util.Objects;
 public class Item extends Domain {
 
     @NotEmpty(message = "Name should not be empty")
+    @Size(min = 2, max = 30)
     @Column(name = "name")
     String name;
 

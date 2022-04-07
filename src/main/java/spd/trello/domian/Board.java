@@ -10,6 +10,7 @@ import spd.trello.domian.type.BoardVisibility;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.Size;
 import java.util.*;
 
 @Getter
@@ -20,10 +21,12 @@ import java.util.*;
 public class Board extends Resource {
 
     @NotEmpty(message = "Name should not be empty")
+    @Size(min = 2, max = 30)
     @Column(name = "name")
     String name;
 
     @Column(name = "description")
+    @Size(min = 10, max = 200)
     String description;
 
     @Enumerated(EnumType.STRING)

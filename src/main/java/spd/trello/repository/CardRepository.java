@@ -10,7 +10,7 @@ import java.util.List;
 public interface CardRepository extends AbstractRepository<Card> {
 
     @Query(
-            value = "SELECT * FROM Card c INNER JOIN Reminder r ON c.id = r.card_id and cast (r.remind_on as date) = CURRENT_DATE",
+            value = "SELECT * FROM Card c INNER JOIN Reminder r ON c.id = r.card_id and date_trunc('minute', r.remind_on) = date_trunc('minute', current_timestamp)",
             nativeQuery = true
     )
     List<Card> findAllCardByReminderDate();

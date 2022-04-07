@@ -8,6 +8,8 @@ import spd.trello.domian.common.Resource;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Table;
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.Size;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -21,6 +23,8 @@ public class Attachment extends Resource {
     @Column(name = "link")
     String link;
 
+    @NotEmpty(message = "Name should not be empty")
+    @Size(min = 2, max = 30)
     @Column(name = "name")
     String name;
 

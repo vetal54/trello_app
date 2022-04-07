@@ -1,106 +1,83 @@
 package spd.trello.service;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.jdbc.Sql;
+import spd.trello.Helper;
 import spd.trello.domian.Board;
-import spd.trello.domian.type.BoardVisibility;
 import spd.trello.exeption.ResourceNotFoundException;
-import spd.trello.repository.BoardRepository;
 
-import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
-@ExtendWith(MockitoExtension.class)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
+@Sql(statements = "DELETE FROM board")
 class BoardServiceTest {
 
-    @Mock
-    private BoardRepository repository;
-    private Board board;
+    @Autowired
     private BoardService service;
+    @Autowired
+    private Helper helper;
 
-    void create() {
-        board = new Board();
-        board.setName("vitaliy");
-        board.setCreateBy("@gmail");
-        board.setArchived(false);
-        board.setVisibility(BoardVisibility.PRIVATE);
-        board.setDescription("hello");
-    }
-
-    @BeforeEach
-    void init() {
-        MockitoAnnotations.openMocks(this);
-        service = new BoardService(repository);
-        create();
+    @Test
+    void boardWasSaved() {
+        Board board = helper.createBoard();
+        Board boardSave = service.findById(board.getId());
+        assertThat(boardSave).isEqualTo(board);
     }
 
     @Test
-    void boardSave() {
-        when(repository.save(Mockito.any(Board.class))).thenReturn(board);
-        Board savedBoard = repository.save(board);
-        assertThat(savedBoard).isEqualTo(board);
-    }
-
-    @Test
-    void emptyListOfBoards() {
-        when(repository.findAll()).thenReturn(Collections.emptyList());
+    void emptyListOfBoardsIsReturned() {
         List<Board> boards = service.findAll();
+
         assertThat(boards).isEmpty();
     }
 
     @Test
-    void oneElementOfListBoards() {
-        when(repository.findAll()).thenReturn(
-                List.of(
-                        board
-                )
-        );
+    void notEmptyListOfBoardsIsReturned() {
+        Board board = helper.createBoard();
+
         List<Board> boards = service.findAll();
-        assertThat(boards).isEqualTo(List.of(board));
+
+        assertThat(boards).isNotEmpty();
     }
 
     @Test
     void boardWasNotFoundById() {
-        when(repository.findById(board.getId()))
-                .thenReturn(Optional.empty());
+        assertThatCode(() -> service.findById(UUID.randomUUID()))
+                .isInstanceOf(ResourceNotFoundException.class);
+    }
+
+    @Test
+    void boardWasFoundById() {
+        Board board = helper.createBoard();
+
+        Board boardFindById = service.findById(board.getId());
+
+        assertThat(boardFindById).isEqualTo(board);
+    }
+
+    @Test
+    void boardWasDeleted() {
+        Board board = helper.createBoard();
+
+        service.delete(board.getId());
 
         assertThatCode(() -> service.findById(board.getId()))
                 .isInstanceOf(ResourceNotFoundException.class);
     }
 
     @Test
-    void boardWasFoundById() {
-        when(repository.findById(board.getId())).thenReturn(
-                Optional.of(board)
-        );
-        Board boardFindById = service.findById(board.getId());
-        assertThat(boardFindById).isEqualTo(board);
-    }
-
-    @Test
-    void boardWasDeleted() {
-        service.delete(board.getId());
-        verify(repository).deleteById(board.getId());
-    }
-
-    @Test
     void boardWasUpdated() {
-        when(repository.save(board))
-                .thenReturn(board);
+        Board savedBoard = helper.createBoard();
+        savedBoard.setName("new Name");
 
-        board.setName("new Name");
-        Board updatedBoard = service.save(board);
-        assertThat(updatedBoard.getName()).isEqualTo(board.getName());
+        Board updatedBoard = service.update(savedBoard);
+
+        assertThat(updatedBoard.getName()).isEqualTo("new Name");
     }
 }

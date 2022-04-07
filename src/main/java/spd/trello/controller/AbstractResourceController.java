@@ -8,6 +8,7 @@ import spd.trello.domian.common.Resource;
 import spd.trello.exeption.ResourceNotFoundException;
 import spd.trello.service.CommonService;
 
+import javax.validation.Valid;
 import java.io.IOException;
 import java.util.List;
 import java.util.UUID;
@@ -23,7 +24,7 @@ public class AbstractResourceController<E extends Resource, S extends CommonServ
 
     @PostMapping
     @Override
-    public ResponseEntity<E> create(@RequestBody E resource) throws IOException {
+    public ResponseEntity<E> create(@Valid @RequestBody E resource) throws IOException {
         E result = service.save(resource);
         return new ResponseEntity<>(result, HttpStatus.CREATED);
     }

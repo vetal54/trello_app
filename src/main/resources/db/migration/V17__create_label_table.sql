@@ -4,5 +4,5 @@ CREATE TABLE label
     name    VARCHAR(255) NOT NULL,
     color   VARCHAR(255) NOT NULL,
     card_id UUID,
-    CONSTRAINT fk_card FOREIGN KEY (card_id) REFERENCES "card" (id) ON DELETE CASCADE
+    CONSTRAINT fk_card_label FOREIGN KEY (card_id) REFERENCES "card" (id) ON DELETE CASCADE
 );

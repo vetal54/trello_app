@@ -9,9 +9,9 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.test.context.jdbc.Sql;
+import spd.trello.Helper;
 import spd.trello.domian.Workspace;
 import spd.trello.domian.type.WorkspaceVisibility;
-import spd.trello.service.WorkspaceService;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.*;
 
@@ -24,42 +24,38 @@ import static org.junit.jupiter.api.Assertions.*;
 class WorkspaceControllerIntegrationTest {
 
     @Autowired
+    private Helper helper;
+    @Autowired
     private TestRestTemplate restTemplate;
 
     @LocalServerPort
     private int port;
 
-    private Workspace workspace;
-
     private final HttpHeaders headers = new HttpHeaders();
-
     private final ObjectMapper mapper = new ObjectMapper();
-
-    @Autowired
-    private WorkspaceService service;
 
     private String getRootUrl() {
         return "http://localhost:" + port;
     }
 
     @Test
-    void workspaceSave() throws JsonProcessingException, JSONException {
+    void workspaceSave() {
         Workspace workspace = new Workspace();
         workspace.setName("name");
-        workspace.setCreateBy("email");
+        workspace.setCreateBy("email@gmail.com");
         workspace.setVisibility(WorkspaceVisibility.PRIVATE);
         workspace.setDescription("description");
 
-        ResponseEntity<String> response = restTemplate
-                .postForEntity(getRootUrl() + "/workspace", workspace, String.class);
+        ResponseEntity<Workspace> response = restTemplate
+                .postForEntity(getRootUrl() + "/workspace", workspace, Workspace.class);
 
-        JSONAssert.assertEquals(mapper.writeValueAsString(workspace), response.getBody(), false);
+        assertEquals(workspace, response.getBody());
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
     }
 
     @Test
     void workspaceFindAllNotEmpty() throws JSONException, JsonProcessingException {
-        saveWorkspace();
+        Workspace workspace = helper.createWorkspace();
 
         HttpEntity<String> entity = new HttpEntity<>(null, headers);
 
@@ -83,7 +79,7 @@ class WorkspaceControllerIntegrationTest {
 
     @Test
     void workspaceFindById() throws JSONException, JsonProcessingException {
-        saveWorkspace();
+        Workspace workspace = helper.createWorkspace();
 
         ResponseEntity<String> response = restTemplate.getForEntity(
                 "/workspace/" + workspace.getId().toString(), String.class);
@@ -102,7 +98,7 @@ class WorkspaceControllerIntegrationTest {
 
     @Test
     void workspaceUpdate() throws JsonProcessingException, JSONException {
-        saveWorkspace();
+        Workspace workspace = helper.createWorkspace();
         workspace.setName("new Name");
 
         HttpEntity<Workspace> request = new HttpEntity<>(workspace, HttpHeaders.EMPTY);
@@ -116,21 +112,12 @@ class WorkspaceControllerIntegrationTest {
 
     @Test
     void workspaceDeleteById() {
-        saveWorkspace();
+        Workspace workspace = helper.createWorkspace();
 
         ResponseEntity<String> response = restTemplate.exchange(
                 "/workspace/" + workspace.getId().toString(), HttpMethod.DELETE, HttpEntity.EMPTY, String.class);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
-    }
-
-    private void saveWorkspace() {
-        workspace = service.create(
-                "name",
-                "email",
-                WorkspaceVisibility.PRIVATE,
-                "description"
-        );
     }
 }
 

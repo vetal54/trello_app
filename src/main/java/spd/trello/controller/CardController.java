@@ -20,7 +20,6 @@ public class CardController extends AbstractResourceController<Card, CardService
     @Override
     public ResponseEntity<Card> update(@PathVariable UUID id, @RequestBody Card resource) {
         Card entity = service.findById(id);
-        service.IsArchivedCard(entity);
         resource.setId(id);
         resource.setCreateDate(entity.getCreateDate());
         Card result = service.update(resource);

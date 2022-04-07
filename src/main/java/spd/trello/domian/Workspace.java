@@ -10,6 +10,7 @@ import spd.trello.domian.type.WorkspaceVisibility;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.Size;
 import java.util.*;
 
 @Getter
@@ -21,10 +22,12 @@ import java.util.*;
 public class Workspace extends Resource {
 
     @NotEmpty(message = "Name should not be empty")
+    @Size(min = 2, max = 30)
     @Column(name = "name")
     String name;
 
     @NotEmpty(message = "Description should not be empty")
+    @Size(min = 10, max = 200)
     @Column(name = "description")
     String description;
 

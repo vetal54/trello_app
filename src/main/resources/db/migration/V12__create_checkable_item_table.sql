@@ -4,5 +4,5 @@ CREATE TABLE checkable_item
     name          VARCHAR(255) NOT NULL,
     checked       BOOLEAN      NOT NULL,
     check_list_id UUID,
-    CONSTRAINT fk_check_list FOREIGN KEY (check_list_id) REFERENCES "check_list" (id) ON DELETE CASCADE
+    CONSTRAINT fk_check_list_to_item FOREIGN KEY (check_list_id) REFERENCES "check_list" (id) ON DELETE CASCADE
 );

@@ -11,14 +11,12 @@ import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.http.*;
 import org.springframework.test.context.jdbc.Sql;
+import spd.trello.Helper;
 import spd.trello.domian.*;
-import spd.trello.domian.type.BoardVisibility;
-import spd.trello.domian.type.WorkspaceVisibility;
-import spd.trello.service.BoardService;
-import spd.trello.service.CardListService;
-import spd.trello.service.CardService;
-import spd.trello.service.WorkspaceService;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
@@ -30,55 +28,46 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 class CardControllerIntegrationTest {
 
     @Autowired
+    private Helper helper;
+    @Autowired
     private TestRestTemplate restTemplate;
 
     @LocalServerPort
     private int port;
 
-    private Card card;
-
     private final HttpHeaders headers = new HttpHeaders();
-
     private final ObjectMapper mapper = new ObjectMapper();
-
-    @Autowired
-    private CardService service;
-
-    @Autowired
-    private CardListService cardListService;
-
-    @Autowired
-    private BoardService boardService;
-
-    @Autowired
-    private WorkspaceService workspaceService;
 
     private String getRootUrl() {
         return "http://localhost:" + port;
     }
 
     @Test
-    void cardSave() throws JsonProcessingException, JSONException {
+    void cardSave() {
         Card card = new Card();
-        card.setName("name");
-        card.setCreateBy("email");
-        card.setDescription("description");
-        card.setCardListId(saveCardList().getId());
-        card.setReminder(new Reminder());
+        card.setName("string name");
+        card.setCreateBy("email@gmail.com");
+        card.setDescription("new description");
+        card.setCardListId(helper.createCardList().getId());
+        Reminder reminder = new Reminder();
+        reminder.setStart(LocalDateTime.now().plus(Duration.of(5, ChronoUnit.MINUTES)));
+        reminder.setRemindOn(LocalDateTime.now().plus(Duration.of(10, ChronoUnit.MINUTES)));
+        reminder.setEnd(LocalDateTime.now().plus(Duration.of(15, ChronoUnit.MINUTES)));
+        card.setReminder(reminder);
         CheckList checkList = new CheckList();
-        checkList.setName("name");
+        checkList.setName("string");
         card.setCheckList(checkList);
 
-        ResponseEntity<String> response = restTemplate.postForEntity(
-                getRootUrl() + "/card", card, String.class);
+        ResponseEntity<Card> response = restTemplate.postForEntity(
+                getRootUrl() + "/card", card, Card.class);
 
-        JSONAssert.assertEquals(mapper.writeValueAsString(card), response.getBody(), false);
+        assertEquals(card, response.getBody());
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
     }
 
     @Test
     void cardFindAllNotEmpty() throws JSONException, JsonProcessingException {
-        saveCard();
+        Card card = helper.createCard();
 
         HttpEntity<String> entity = new HttpEntity<>(null, headers);
 
@@ -102,7 +91,7 @@ class CardControllerIntegrationTest {
 
     @Test
     void cardFindById() throws JSONException, JsonProcessingException {
-        saveCard();
+        Card card = helper.createCard();
 
         ResponseEntity<String> response = restTemplate.getForEntity(
                 "/card/" + card.getId().toString(), String.class);
@@ -121,7 +110,7 @@ class CardControllerIntegrationTest {
 
     @Test
     void cardUpdate() throws JsonProcessingException, JSONException {
-        saveCard();
+        Card card = helper.createCard();
         card.setName("new Name");
 
         HttpEntity<Card> request = new HttpEntity<>(card, HttpHeaders.EMPTY);
@@ -135,47 +124,11 @@ class CardControllerIntegrationTest {
 
     @Test
     void cardDeleteById() {
-        saveCard();
+        Card card = helper.createCard();
 
         ResponseEntity<String> response = restTemplate.exchange(
                 "/card/" + card.getId().toString(), HttpMethod.DELETE, HttpEntity.EMPTY, String.class);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
-    }
-
-    private void saveCard() {
-        card = service.create(
-                "name",
-                "email",
-                "description",
-                saveCardList().getId()
-        );
-    }
-
-    private CardList saveCardList() {
-        return cardListService.create(
-                "name",
-                "email",
-                saveBoard().getId()
-        );
-    }
-
-    private Board saveBoard() {
-        return boardService.create(
-                "name",
-                "email",
-                "description",
-                BoardVisibility.PRIVATE,
-                saveWorkspace().getId()
-        );
-    }
-
-    private Workspace saveWorkspace() {
-        return workspaceService.create(
-                "name",
-                "email",
-                WorkspaceVisibility.PRIVATE,
-                "description"
-        );
     }
 }
