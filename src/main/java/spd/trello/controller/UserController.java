@@ -2,14 +2,15 @@ package spd.trello.controller;
 
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import spd.trello.domian.User;
 import spd.trello.service.UserService;
 
 @RestController
 @RequestMapping("/user")
-public class UserController extends AbstractDomainController<User, UserService> {
+public class UserController {
 
-    public UserController(UserService service) {
-        super(service);
+    private final UserService userService;
+
+    public UserController(UserService userService) {
+        this.userService = userService;
     }
 }

@@ -1,30 +1,36 @@
 package spd.trello.service;
 
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import spd.trello.domian.User;
 import spd.trello.exeption.EmailAlreadyExists;
 import spd.trello.repository.UserRepository;
 
 @Service
-public class UserService extends AbstractDomainService<User, UserRepository> {
+public class UserService {
 
-    public UserService(UserRepository repository) {
-        super(repository);
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
+
+    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+        this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
-    public User create(String firstName, String lastName, String email) {
-        User user = new User();
-        user.setFirstName(firstName);
-        user.setLastName(lastName);
-        user.setEmail(email);
-        return repository.save(user);
-    }
+    public User register(User user) throws EmailAlreadyExists {
 
-    @Override
-    public User save(User user) {
-        if (Boolean.TRUE.equals(repository.findUserById(user.getEmail()))) {
-            throw new EmailAlreadyExists("Email: " + user.getEmail() + " already exists!");
+        if (checkIfUserExist(user.getEmail())) {
+            throw new EmailAlreadyExists("Email already exists");
         }
-        return repository.save(user);
+        encodePassword(user);
+        return userRepository.save(user);
+    }
+
+    public boolean checkIfUserExist(String email) {
+        return userRepository.findByEmail(email) != null;
+    }
+
+    private void encodePassword(User user) {
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
     }
 }

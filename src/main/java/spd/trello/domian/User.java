@@ -1,15 +1,16 @@
 package spd.trello.domian;
 
-import lombok.*;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.experimental.FieldDefaults;
 import org.hibernate.Hibernate;
 import spd.trello.annotation.EmailValidation;
 import spd.trello.domian.common.Domain;
+import spd.trello.domian.type.Role;
+import spd.trello.domian.type.Status;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Table;
-import javax.validation.constraints.Email;
+import javax.persistence.*;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.Size;
 import java.util.Objects;
@@ -31,10 +32,22 @@ public class User extends Domain {
     @Column(name = "last_name")
     String lastName;
 
+    @Enumerated(value = EnumType.STRING)
+    @Column(name = "role")
+    Role role = Role.ADMIN;
+
     @EmailValidation
     @NotEmpty(message = "Email should not be empty")
     @Column(name = "email")
     String email;
+
+    @NotEmpty
+    @Column(name = "password")
+    String password;
+
+    @Enumerated(value = EnumType.STRING)
+    @Column(name = "status")
+    Status status = Status.ACTIVE;
 
     @Override
     public boolean equals(Object o) {

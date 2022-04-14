@@ -27,9 +27,20 @@ spring:
     properties:
       hibernate.format_sql: true
 
+  messages:
+    basename=validation
+
   mvc:
+    view:
+      prefix: /
+      suffix: .jsp
     pathmatch:
       matching-strategy: ant_path_matcher
+
+  jwt:
+    header: Authorization
+    secret: proselyte
+    expiration: 604800
 
 server:
   error:

@@ -7,12 +7,14 @@ import org.springframework.test.context.jdbc.Sql;
 import spd.trello.Helper;
 import spd.trello.domian.User;
 import spd.trello.exeption.ResourceNotFoundException;
+import spd.trello.repository.UserRepository;
 
 import javax.validation.ConstraintViolation;
 import javax.validation.Validation;
 import javax.validation.Validator;
 import javax.validation.ValidatorFactory;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
@@ -25,14 +27,14 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 class UserServiceTest {
 
     @Autowired
-    private UserService service;
+    private UserRepository repository;
     @Autowired
     private Helper helper;
 
     @Test
     void workspaceWasSaved() {
         User savedUser = helper.createUser();
-        User userSave = service.findById(savedUser.getId());
+        Optional<User> userSave = repository.findById(savedUser.getId());
         assertThat(userSave).isEqualTo(savedUser);
     }
 
@@ -53,7 +55,7 @@ class UserServiceTest {
 
     @Test
     void emptyListOfUsersIsReturned() {
-        List<User> users = service.findAll();
+        List<User> users = repository.findAll();
 
         assertThat(users).isEmpty();
     }
@@ -62,14 +64,14 @@ class UserServiceTest {
     void notEmptyListOfUsersIsReturned() {
         User savedUser = helper.createUser();
 
-        List<User> users = service.findAll();
+        List<User> users = repository.findAll();
 
         assertThat(users).isNotEmpty();
     }
 
     @Test
     void userWasNotFoundById() {
-        assertThatCode(() -> service.findById(UUID.randomUUID()))
+        assertThatCode(() -> repository.findById(UUID.randomUUID()))
                 .isInstanceOf(ResourceNotFoundException.class);
     }
 
@@ -77,7 +79,7 @@ class UserServiceTest {
     void userWasFoundById() {
         User savedUser = helper.createUser();
 
-        User userFindById = service.findById(savedUser.getId());
+        Optional<User> userFindById = repository.findById(savedUser.getId());
 
         assertThat(userFindById).isEqualTo(savedUser);
     }
@@ -86,9 +88,9 @@ class UserServiceTest {
     void userWasDeleted() {
         User savedUser = helper.createUser();
 
-        service.delete(savedUser.getId());
+        repository.deleteById(savedUser.getId());
 
-        assertThatCode(() -> service.findById(savedUser.getId()))
+        assertThatCode(() -> repository.findById(savedUser.getId()))
                 .isInstanceOf(ResourceNotFoundException.class);
     }
 
@@ -97,7 +99,7 @@ class UserServiceTest {
         User savedUser = helper.createUser();
         savedUser.setFirstName("new Name");
 
-        User updatedUser = service.update(savedUser);
+        User updatedUser = repository.save(savedUser);
 
         assertThat(updatedUser.getFirstName()).isEqualTo("new Name");
     }

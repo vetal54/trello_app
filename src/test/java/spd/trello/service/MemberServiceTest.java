@@ -95,10 +95,10 @@ class MemberServiceTest {
     @Test
     void memberWasUpdated() {
         Member savedMember = helper.createMember();
-        savedMember.setRole(Role.MEMBER);
+        savedMember.setRole(Role.GUEST);
 
         Member updatedMember = memberService.update(savedMember);
 
-        assertThat(updatedMember.getRole()).isEqualTo(Role.MEMBER);
+        assertThat(updatedMember.getRole()).isEqualTo(Role.GUEST);
     }
 }

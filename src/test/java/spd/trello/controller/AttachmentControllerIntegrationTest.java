@@ -13,7 +13,6 @@ import org.springframework.http.*;
 import org.springframework.test.context.jdbc.Sql;
 import spd.trello.Helper;
 import spd.trello.domian.Attachment;
-import spd.trello.domian.User;
 
 import java.util.Collections;
 import java.util.List;
