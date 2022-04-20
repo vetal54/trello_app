@@ -7,13 +7,12 @@ import spd.trello.exeption.EmailAlreadyExists;
 import spd.trello.repository.UserRepository;
 
 @Service
-public class UserService {
+public class UserService extends AbstractDomainService<User, UserRepository> {
 
-    private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
-    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
-        this.userRepository = userRepository;
+    public UserService(UserRepository repository, PasswordEncoder passwordEncoder) {
+        super(repository);
         this.passwordEncoder = passwordEncoder;
     }
 
@@ -23,11 +22,15 @@ public class UserService {
             throw new EmailAlreadyExists("Email already exists");
         }
         encodePassword(user);
-        return userRepository.save(user);
+        return repository.save(user);
+    }
+
+    public User findByEmail(String email) {
+        return repository.findByEmail(email);
     }
 
     public boolean checkIfUserExist(String email) {
-        return userRepository.findByEmail(email) != null;
+        return repository.findByEmail(email) != null;
     }
 
     private void encodePassword(User user) {

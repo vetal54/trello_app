@@ -3,7 +3,6 @@ package spd.trello.controller;
 import lombok.NoArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import spd.trello.domian.common.Resource;
 import spd.trello.exeption.ResourceNotFoundException;
@@ -25,7 +24,7 @@ public class AbstractResourceController<E extends Resource, S extends CommonServ
 
     @PostMapping
     @Override
-    @PreAuthorize("hasAuthority('developers:write')")
+//    @PreAuthorize("hasAuthority('developers:write')")
     public ResponseEntity<E> create(@Valid @RequestBody E resource) throws IOException {
         E result = service.save(resource);
         return new ResponseEntity<>(result, HttpStatus.CREATED);
@@ -51,7 +50,7 @@ public class AbstractResourceController<E extends Resource, S extends CommonServ
 
     @GetMapping("/{id}")
     @Override
-    @PreAuthorize("hasAuthority('developers:read')")
+//    @PreAuthorize("hasAuthority('developers:read')")
     public ResponseEntity<E> readById(@PathVariable UUID id) {
         E result = service.findById(id);
         return new ResponseEntity<>(result, HttpStatus.OK);

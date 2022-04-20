@@ -1,4 +1,4 @@
-package spd.trello.security;
+package spd.trello.exeption;
 
 import lombok.Getter;
 import org.springframework.http.HttpStatus;

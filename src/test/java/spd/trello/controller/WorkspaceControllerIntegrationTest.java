@@ -41,7 +41,7 @@ class WorkspaceControllerIntegrationTest {
     @Test
     void workspaceSave() {
         Workspace workspace = new Workspace();
-        workspace.setName("name");
+        workspace.setName("name!");
         workspace.setCreateBy("email@gmail.com");
         workspace.setVisibility(WorkspaceVisibility.PRIVATE);
         workspace.setDescription("description");
@@ -81,10 +81,10 @@ class WorkspaceControllerIntegrationTest {
     void workspaceFindById() throws JSONException, JsonProcessingException {
         Workspace workspace = helper.createWorkspace();
 
-        ResponseEntity<String> response = restTemplate.getForEntity(
-                "/workspace/" + workspace.getId().toString(), String.class);
+        ResponseEntity<Workspace> response = restTemplate.getForEntity(
+                "/workspace/" + workspace.getId().toString(), Workspace.class);
 
-        JSONAssert.assertEquals(mapper.writeValueAsString(workspace), response.getBody(), false);
+        assertEquals(workspace, response.getBody());
         assertEquals(HttpStatus.OK, response.getStatusCode());
     }
 

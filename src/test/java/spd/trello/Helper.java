@@ -34,81 +34,83 @@ public class Helper {
     private LabelService labelService;
 
     public User createUser() {
-        return userService.create(
-                "string",
-                "string",
-                "string1@gmail.com"
-        );
+        User user = new User();
+        user.setFirstName("string");
+        user.setLastName("string");
+        user.setEmail("string1@gmail.com");
+        user.setPassword("admin");
+        user.setRole(Role.ADMIN);
+        return userService.save(user);
     }
 
     public Member createMember() {
-        return memberService.create(
-                Role.ADMIN,
-                createUser().getId()
-        );
+        Member member = new Member();
+        member.setRole(Role.ADMIN);
+        member.setUserId(createUser().getId());
+        return memberService.save(member);
     }
 
     public Workspace createWorkspace() {
-        return workspaceService.create(
-                "string",
-                "email@gmail.com",
-                WorkspaceVisibility.PRIVATE,
-                "description"
-        );
+        Workspace workspace = new Workspace();
+        workspace.setName("string");
+        workspace.setCreateBy("email@gmail.com");
+        workspace.setVisibility(WorkspaceVisibility.PRIVATE);
+        workspace.setDescription("description");
+        return workspaceService.save(workspace);
     }
 
     public Board createBoard() {
-        return boardService.create(
-                "string",
-                "string@gmail.com",
-                "description",
-                BoardVisibility.PRIVATE,
-                createWorkspace().getId()
-        );
+        Board board = new Board();
+        board.setName("string");
+        board.setCreateBy("string@gmail.com");
+        board.setDescription("description");
+        board.setVisibility(BoardVisibility.PRIVATE);
+        board.setWorkspaceId(createWorkspace().getId());
+        return boardService.save(board);
     }
 
     public CardList createCardList() {
-        return cardListService.create(
-                "string",
-                "string@gmail.com",
-                createBoard().getId()
-        );
+        CardList cardList = new CardList();
+        cardList.setName("string");
+        cardList.setCreateBy("string@gmail.com");
+        cardList.setBoardId(createBoard().getId());
+        return cardListService.save(cardList);
     }
 
     public Card createCard() {
-        return cardService.create(
-                "string",
-                "email@gmail.com",
-                "description",
-                createReminder(),
-                createCheckList(),
-                createCardList().getId()
-        );
+        Card card = new Card();
+        card.setName("string");
+        card.setCreateBy("email@gmail.com");
+        card.setDescription("description");
+        card.setReminder(createReminder());
+        card.setCheckList(createCheckList());
+        card.setCardListId(createCardList().getId());
+        return cardService.save(card);
     }
 
     public Attachment createAttachment() {
-        return attachmentService.createAttachment(
-                "string",
-                "email@gmail.com",
-                "https://www.youtube.com/",
-                createCard().getId()
-        );
+        Attachment attachment = new Attachment();
+        attachment.setName("string");
+        attachment.setLink("https://www.youtube.com/");
+        attachment.setCreateBy("email@gmail.com");
+        attachment.setCardId(createCard().getId());
+        return attachmentService.save(attachment);
     }
 
     public Comment createComment() {
-        return commentService.create(
-                "context text! Hello!",
-                "email@gmail.com",
-                createCard().getId()
-        );
+        Comment comment = new Comment();
+        comment.setContext("context text! Hello!");
+        comment.setCreateBy("email@gmail.com");
+        comment.setCardId(createCard().getId());
+       return commentService.save(comment);
     }
 
     public Label createLabel() {
-        return labelService.create(
-                "string",
-                "color",
-                createCard().getId()
-        );
+        Label label = new Label();
+        label.setName("string");
+        label.setColor("color");
+        label.setCardId( createCard().getId());
+        return labelService.save(label);
     }
 
     public Reminder createReminder() {

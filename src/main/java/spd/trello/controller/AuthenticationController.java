@@ -12,7 +12,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import spd.trello.domian.AuthenticationRequestDTO;
 import spd.trello.domian.User;
-import spd.trello.repository.UserRepository;
 import spd.trello.security.JwtTokenProvider;
 import spd.trello.service.UserService;
 
@@ -28,13 +27,11 @@ public class AuthenticationController {
 
     private final UserService service;
     private final AuthenticationManager authenticationManager;
-    private final UserRepository userRepository;
     private final JwtTokenProvider jwtTokenProvider;
 
-    public AuthenticationController(UserService service, AuthenticationManager authenticationManager, UserRepository userRepository, JwtTokenProvider jwtTokenProvider) {
+    public AuthenticationController(UserService service, AuthenticationManager authenticationManager, JwtTokenProvider jwtTokenProvider) {
         this.service = service;
         this.authenticationManager = authenticationManager;
-        this.userRepository = userRepository;
         this.jwtTokenProvider = jwtTokenProvider;
     }
 
@@ -49,7 +46,7 @@ public class AuthenticationController {
     public ResponseEntity<?> authenticate(@RequestBody AuthenticationRequestDTO request) {
         try {
             authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword()));
-            User user = userRepository.findByEmail(request.getEmail());
+            User user = service.findByEmail(request.getEmail());
             String token = jwtTokenProvider.createToken(request.getEmail(), user.getRole().name());
             Map<Object, Object> response = new HashMap<>();
             response.put("email", request.getEmail());

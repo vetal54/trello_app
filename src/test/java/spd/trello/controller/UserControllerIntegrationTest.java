@@ -45,6 +45,7 @@ class UserControllerIntegrationTest {
         user.setEmail("email@gmail.com");
         user.setLastName("string");
         user.setFirstName("string");
+        user.setPassword("admin");
 
         ResponseEntity<String> response = restTemplate
                 .postForEntity(getRootUrl() + "/user", user, String.class);
@@ -83,6 +84,9 @@ class UserControllerIntegrationTest {
 
         ResponseEntity<String> response = restTemplate.getForEntity(
                 "/user/" + user.getId().toString(), String.class);
+
+        System.out.println(mapper.writeValueAsString(user));
+        System.out.println(response.getBody());
 
         JSONAssert.assertEquals(mapper.writeValueAsString(user), response.getBody(), false);
         assertEquals(HttpStatus.OK, response.getStatusCode());
