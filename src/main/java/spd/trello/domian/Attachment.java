@@ -24,13 +24,14 @@ public class Attachment extends Resource {
     String link;
 
     @NotEmpty(message = "Name should not be empty")
-    @Size(min = 2, max = 30)
+    @Size(min = 2, max = 100)
     @Column(name = "name")
     String name;
 
-    UUID cardId;
+    double size;
 
-    UUID commentId;
+    @Column(name = "card_id")
+    UUID cardId;
 
     @Override
     public boolean equals(Object o) {
