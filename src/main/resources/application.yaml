@@ -31,9 +31,6 @@ spring:
     hibernate:
       ddl-auto: update
 
-  messages:
-    basename=validation
-
   mvc:
     view:
       prefix: /

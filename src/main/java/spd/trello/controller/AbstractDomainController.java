@@ -30,7 +30,7 @@ public class AbstractDomainController<E extends Domain, S extends CommonService<
 
     @PutMapping("/{id}")
     @Override
-    public ResponseEntity<E> update(@PathVariable UUID id, @RequestBody E resource) {
+    public ResponseEntity<E> update(@PathVariable UUID id, @Valid @RequestBody E resource) {
         E entity = service.findById(id);
         if (entity == null) throw new ResourceNotFoundException();
         resource.setId(id);

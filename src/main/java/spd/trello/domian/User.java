@@ -41,7 +41,7 @@ public class User extends Domain {
     @Column(name = "email")
     String email;
 
-    @NotEmpty
+    @NotEmpty(message = "Password should not be empty")
     @Column(name = "password")
     String password;
 

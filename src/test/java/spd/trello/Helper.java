@@ -1,16 +1,23 @@
 package spd.trello;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.test.web.servlet.MvcResult;
 import spd.trello.domian.*;
 import spd.trello.domian.type.BoardVisibility;
 import spd.trello.domian.type.Role;
 import spd.trello.domian.type.WorkspaceVisibility;
 import spd.trello.service.*;
 
+import java.io.UnsupportedEncodingException;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.List;
+import java.util.Map;
 
 @Component
 public class Helper {
@@ -37,23 +44,22 @@ public class Helper {
         User user = new User();
         user.setFirstName("string");
         user.setLastName("string");
-        user.setEmail("string1@gmail.com");
+        user.setEmail("admin@gmail.com");
         user.setPassword("admin");
-        user.setRole(Role.ADMIN);
-        return userService.save(user);
+        return userService.register(user);
     }
 
-    public Member createMember() {
+    public Member createMember(User user) {
         Member member = new Member();
         member.setRole(Role.ADMIN);
-        member.setUserId(createUser().getId());
+        member.setUserId(user.getId());
         return memberService.save(member);
     }
 
     public Workspace createWorkspace() {
         Workspace workspace = new Workspace();
         workspace.setName("string");
-        workspace.setCreateBy("email@gmail.com");
+        workspace.setCreateBy("admin@gmail.com");
         workspace.setVisibility(WorkspaceVisibility.PRIVATE);
         workspace.setDescription("description");
         return workspaceService.save(workspace);
@@ -62,7 +68,7 @@ public class Helper {
     public Board createBoard() {
         Board board = new Board();
         board.setName("string");
-        board.setCreateBy("string@gmail.com");
+        board.setCreateBy("admin@gmail.com");
         board.setDescription("description");
         board.setVisibility(BoardVisibility.PRIVATE);
         board.setWorkspaceId(createWorkspace().getId());
@@ -72,7 +78,7 @@ public class Helper {
     public CardList createCardList() {
         CardList cardList = new CardList();
         cardList.setName("string");
-        cardList.setCreateBy("string@gmail.com");
+        cardList.setCreateBy("admin@gmail.com");
         cardList.setBoardId(createBoard().getId());
         return cardListService.save(cardList);
     }
@@ -80,8 +86,8 @@ public class Helper {
     public Card createCard() {
         Card card = new Card();
         card.setName("string");
-        card.setCreateBy("email@gmail.com");
         card.setDescription("description");
+        card.setCreateBy("admin@gmail.com");
         card.setReminder(createReminder());
         card.setCheckList(createCheckList());
         card.setCardListId(createCardList().getId());
@@ -92,24 +98,24 @@ public class Helper {
         Attachment attachment = new Attachment();
         attachment.setName("string");
         attachment.setLink("https://www.youtube.com/");
-        attachment.setCreateBy("email@gmail.com");
+        attachment.setCreateBy("admin@gmail.com");
         attachment.setCardId(createCard().getId());
         return attachmentService.save(attachment);
     }
 
     public Comment createComment() {
         Comment comment = new Comment();
+        comment.setCreateBy("admin@gmail.com");
         comment.setContext("context text! Hello!");
-        comment.setCreateBy("email@gmail.com");
         comment.setCardId(createCard().getId());
-       return commentService.save(comment);
+        return commentService.save(comment);
     }
 
     public Label createLabel() {
         Label label = new Label();
         label.setName("string");
         label.setColor("color");
-        label.setCardId( createCard().getId());
+        label.setCardId(createCard().getId());
         return labelService.save(label);
     }
 
@@ -128,5 +134,81 @@ public class Helper {
         item.setName("string");
         checkList.getItems().add(item);
         return checkList;
+    }
+
+    public String createUserAdminAndGetToken(User user) {
+        AuthenticationRequestDTO authentication = new AuthenticationRequestDTO();
+        authentication.setEmail(user.getEmail());
+        authentication.setPassword("admin");
+        Map<Object, Object> result = userService.authenticate(authentication);
+        String token = result.toString();
+        if (token != null) {
+            token = token.replace("{email=admin@gmail.com, token=", "");
+            token = token.replace("}", "");
+        }
+        return token;
+    }
+
+    public List<User> getUsersArray(MvcResult mvcResult) throws UnsupportedEncodingException, JsonProcessingException {
+        return new ObjectMapper().readValue(
+                mvcResult.getResponse().getContentAsString(), new TypeReference<>() {
+                }
+        );
+    }
+
+    public List<Member> getMembersArray(MvcResult mvcResult) throws UnsupportedEncodingException, JsonProcessingException {
+        return new ObjectMapper().readValue(
+                mvcResult.getResponse().getContentAsString(), new TypeReference<>() {
+                }
+        );
+    }
+
+    public List<Workspace> getWorkspacesArray(MvcResult mvcResult) throws UnsupportedEncodingException, JsonProcessingException {
+        return new ObjectMapper().readValue(
+                mvcResult.getResponse().getContentAsString(), new TypeReference<>() {
+                }
+        );
+    }
+
+    public List<Board> getBoardsArray(MvcResult mvcResult) throws UnsupportedEncodingException, JsonProcessingException {
+        return new ObjectMapper().readValue(
+                mvcResult.getResponse().getContentAsString(), new TypeReference<>() {
+                }
+        );
+    }
+
+    public List<CardList> getCardListsArray(MvcResult mvcResult) throws UnsupportedEncodingException, JsonProcessingException {
+        return new ObjectMapper().readValue(
+                mvcResult.getResponse().getContentAsString(), new TypeReference<>() {
+                }
+        );
+    }
+
+    public List<Card> getCardsArray(MvcResult mvcResult) throws UnsupportedEncodingException, JsonProcessingException {
+        return new ObjectMapper().readValue(
+                mvcResult.getResponse().getContentAsString(), new TypeReference<>() {
+                }
+        );
+    }
+
+    public List<Comment> getCommentsArray(MvcResult mvcResult) throws UnsupportedEncodingException, JsonProcessingException {
+        return new ObjectMapper().readValue(
+                mvcResult.getResponse().getContentAsString(), new TypeReference<>() {
+                }
+        );
+    }
+
+    public List<Attachment> getAttachmentsArray(MvcResult mvcResult) throws UnsupportedEncodingException, JsonProcessingException {
+        return new ObjectMapper().readValue(
+                mvcResult.getResponse().getContentAsString(), new TypeReference<>() {
+                }
+        );
+    }
+
+    public List<Label> getLabelsArray(MvcResult mvcResult) throws UnsupportedEncodingException, JsonProcessingException {
+        return new ObjectMapper().readValue(
+                mvcResult.getResponse().getContentAsString(), new TypeReference<>() {
+                }
+        );
     }
 }

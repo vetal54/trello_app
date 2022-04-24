@@ -1,124 +1,123 @@
 package spd.trello.controller;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.json.JSONException;
 import org.junit.jupiter.api.Test;
-import org.skyscreamer.jsonassert.JSONAssert;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.web.client.TestRestTemplate;
-import org.springframework.boot.web.server.LocalServerPort;
-import org.springframework.http.*;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.test.context.jdbc.Sql;
+import org.springframework.test.web.servlet.MvcResult;
 import spd.trello.Helper;
 import spd.trello.domian.Member;
 import spd.trello.domian.User;
 import spd.trello.domian.type.Role;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@SpringBootTest
 @Sql(statements = "DELETE FROM member")
-class MemberControllerIntegrationTest {
+@Sql(statements = "DELETE FROM user_table")
+class MemberControllerIntegrationTest extends AbstractIntegrationTest<Member> {
+
+    private final String URL_TEMPLATE = "/member";
 
     @Autowired
     private Helper helper;
-    @Autowired
-    private TestRestTemplate restTemplate;
-
-    @LocalServerPort
-    private int port;
-
-    private final HttpHeaders headers = new HttpHeaders();
-    private final ObjectMapper mapper = new ObjectMapper();
-
-    private String getRootUrl() {
-        return "http://localhost:" + port;
-    }
 
     @Test
-    void memberSave() {
+    void create() throws Exception {
         User user = helper.createUser();
         Member member = new Member();
         member.setRole(Role.ADMIN);
         member.setUserId(user.getId());
 
-        ResponseEntity<Member> response = restTemplate
-                .postForEntity(getRootUrl() + "/member", member, Member.class);
+        String token = helper.createUserAdminAndGetToken(user);
 
-        assertEquals(member, response.getBody());
-        assertEquals(HttpStatus.CREATED, response.getStatusCode());
+        MvcResult mvc = super.create(URL_TEMPLATE, member, token);
+
+        assertAll(
+                () -> assertEquals(HttpStatus.CREATED.value(), mvc.getResponse().getStatus()),
+                () -> assertNotNull(getValue(mvc, "$.id")),
+                () -> assertEquals(member.getId().toString(), getValue(mvc, "$.id")),
+                () -> assertEquals(member.getRole().toString(), getValue(mvc, "$.role"))
+        );
     }
 
     @Test
-    void memberFindAllNotEmpty() throws JSONException, JsonProcessingException {
-        Member member = helper.createMember();
+    void delete() throws Exception {
+        User user = helper.createUser();
+        Member member = helper.createMember(user);
 
-        HttpEntity<String> entity = new HttpEntity<>(null, headers);
+        String token = helper.createUserAdminAndGetToken(user);
 
-        ResponseEntity<String> response = restTemplate.exchange(
-                getRootUrl() + "/member", HttpMethod.GET, entity, String.class);
-
-        JSONAssert.assertEquals(mapper.writeValueAsString(List.of(member)), response.getBody(), false);
-        assertEquals(HttpStatus.OK, response.getStatusCode());
+        MvcResult mvc = super.delete(URL_TEMPLATE, member.getId(), token);
+        assertEquals(HttpStatus.OK.value(), mvc.getResponse().getStatus());
     }
 
     @Test
-    void memberFindAllEmptyList() throws JsonProcessingException, JSONException {
-        HttpEntity<String> entity = new HttpEntity<>(null, headers);
+    void findById() throws Exception {
+        User user = helper.createUser();
+        Member member = helper.createMember(user);
 
-        ResponseEntity<String> response = restTemplate.exchange(
-                getRootUrl() + "/member", HttpMethod.GET, entity, String.class);
+        String token = helper.createUserAdminAndGetToken(user);
 
-        JSONAssert.assertEquals(mapper.writeValueAsString(Collections.EMPTY_LIST), response.getBody(), false);
-        assertEquals(HttpStatus.OK, response.getStatusCode());
+        MvcResult mvc = super.getById(URL_TEMPLATE, member.getId(), token);
+
+        assertAll(
+                () -> assertEquals(HttpStatus.OK.value(), mvc.getResponse().getStatus()),
+                () -> assertNotNull(getValue(mvc, "$.id")),
+                () -> assertEquals(member.getId().toString(), getValue(mvc, "$.id")),
+                () -> assertEquals(member.getRole().toString(), getValue(mvc, "$.role"))
+        );
     }
 
     @Test
-    void memberFindById() throws JSONException, JsonProcessingException {
-        Member member = helper.createMember();
+    void findByIdFailed() throws Exception {
+        User user = helper.createUser();
+        String token = helper.createUserAdminAndGetToken(user);
 
-        ResponseEntity<String> response = restTemplate.getForEntity(
-                "/member/" + member.getId().toString(), String.class);
+        MvcResult mvc = super.getById(URL_TEMPLATE, UUID.randomUUID(), token);
 
-        JSONAssert.assertEquals(mapper.writeValueAsString(member), response.getBody(), false);
-        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(HttpStatus.NOT_FOUND.value(), mvc.getResponse().getStatus());
     }
 
     @Test
-    void memberFindByIdNotFound() {
-        ResponseEntity<String> response = restTemplate.getForEntity(
-                getRootUrl() + "/member/" + UUID.randomUUID(), String.class);
+    void findAll() throws Exception {
+        User user = helper.createUser();
+        Member firstMember = helper.createMember(user);
+        Member secondMember = helper.createMember(user);
 
-        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        String token = helper.createUserAdminAndGetToken(user);
+
+        MvcResult mvc = super.findAll(URL_TEMPLATE, token);
+        List<Member> members = helper.getMembersArray(mvc);
+
+        assertAll(
+                () -> assertEquals(MediaType.APPLICATION_JSON.toString(), mvc.getResponse().getContentType()),
+                () -> assertEquals(HttpStatus.OK.value(), mvc.getResponse().getStatus()),
+                () -> assertTrue(members.contains(firstMember)),
+                () -> assertTrue(members.contains(secondMember))
+        );
     }
 
     @Test
-    void userUpdate() throws JsonProcessingException, JSONException {
-        Member member = helper.createMember();
+    void update() throws Exception {
+        User user = helper.createUser();
+        Member member = helper.createMember(user);
         member.setRole(Role.GUEST);
 
-        HttpEntity<Member> request = new HttpEntity<>(member, HttpHeaders.EMPTY);
+        String token = helper.createUserAdminAndGetToken(user);
 
-        ResponseEntity<String> response = restTemplate.exchange(
-                "/member/" + member.getId().toString(), HttpMethod.PUT, request, String.class);
+        MvcResult mvc = super.update(URL_TEMPLATE, member.getId(), member, token);
 
-        JSONAssert.assertEquals(mapper.writeValueAsString(member), response.getBody(), false);
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-    }
-
-    @Test
-    void memberDeleteById() {
-        Member member = helper.createMember();
-
-        ResponseEntity<String> response = restTemplate.exchange(
-                "/member/" + member.getId().toString(), HttpMethod.DELETE, HttpEntity.EMPTY, String.class);
-
-        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertAll(
+                () -> assertEquals(HttpStatus.OK.value(), mvc.getResponse().getStatus()),
+                () -> assertNotNull(getValue(mvc, "$.id")),
+                () -> assertEquals(member.getId().toString(), getValue(mvc, "$.id")),
+                () -> assertEquals(Role.GUEST.toString(), getValue(mvc, "$.role"))
+        );
     }
 }

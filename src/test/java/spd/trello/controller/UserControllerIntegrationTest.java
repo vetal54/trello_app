@@ -1,126 +1,148 @@
 package spd.trello.controller;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.json.JSONException;
 import org.junit.jupiter.api.Test;
-import org.skyscreamer.jsonassert.JSONAssert;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.web.client.TestRestTemplate;
-import org.springframework.boot.web.server.LocalServerPort;
-import org.springframework.http.*;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.test.context.jdbc.Sql;
+import org.springframework.test.web.servlet.MvcResult;
 import spd.trello.Helper;
 import spd.trello.domian.User;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@SpringBootTest
+@AutoConfigureMockMvc
 @Sql(statements = "DELETE FROM user_table")
-class UserControllerIntegrationTest {
+class UserControllerIntegrationTest extends AbstractIntegrationTest<User> {
+
+    private final String URL_TEMPLATE = "/user";
 
     @Autowired
     private Helper helper;
-    @Autowired
-    private TestRestTemplate restTemplate;
-
-    @LocalServerPort
-    private int port;
-
-    private final HttpHeaders headers = new HttpHeaders();
-    private final ObjectMapper mapper = new ObjectMapper();
-
-    private String getRootUrl() {
-        return "http://localhost:" + port;
-    }
 
     @Test
-    void userSave() throws JsonProcessingException, JSONException {
+    void create() throws Exception {
         User user = new User();
-        user.setEmail("email@gmail.com");
+        user.setEmail("admin@gmail.com");
         user.setLastName("string");
         user.setFirstName("string");
         user.setPassword("admin");
 
-        ResponseEntity<String> response = restTemplate
-                .postForEntity(getRootUrl() + "/user", user, String.class);
+        MvcResult mvc = super.register(URL_TEMPLATE + "/register", user);
 
-        JSONAssert.assertEquals(mapper.writeValueAsString(user), response.getBody(), false);
-        assertEquals(HttpStatus.CREATED, response.getStatusCode());
+        assertAll(
+                () -> assertEquals(HttpStatus.CREATED.value(), mvc.getResponse().getStatus()),
+                () -> assertNotNull(getValue(mvc, "$.id")),
+                () -> assertEquals(user.getId().toString(), getValue(mvc, "$.id")),
+                () -> assertEquals(user.getFirstName(), getValue(mvc, "$.firstName"))
+        );
     }
 
     @Test
-    void userFindAllNotEmpty() throws JSONException, JsonProcessingException {
+    void createValidationFailed() throws Exception {
+        User user = new User();
+        user.setEmail("admin@gmail.com");
+        user.setPassword("admin");
+
+        MvcResult mvc = super.register(URL_TEMPLATE + "/register", user);
+
+        assertAll(
+                () -> assertEquals(HttpStatus.BAD_REQUEST.value(), mvc.getResponse().getStatus()),
+                () -> assertEquals("Validation Failed", getValue(mvc, "$.message")),
+                () -> assertEquals("First name should not be empty", getValue(mvc, "$.details.firstName")),
+                () -> assertEquals("Last name should not be empty", getValue(mvc, "$.details.lastName"))
+        );
+    }
+
+    @Test
+    void delete() throws Exception {
         User user = helper.createUser();
 
-        HttpEntity<String> entity = new HttpEntity<>(null, headers);
+        String token = helper.createUserAdminAndGetToken(user);
 
-        ResponseEntity<String> response = restTemplate.exchange(
-                getRootUrl() + "/user", HttpMethod.GET, entity, String.class);
+        MvcResult mvc = super.delete(URL_TEMPLATE, user.getId(), token);
 
-        JSONAssert.assertEquals(mapper.writeValueAsString(List.of(user)), response.getBody(), false);
-        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(HttpStatus.OK.value(), mvc.getResponse().getStatus());
     }
 
     @Test
-    void userFindAllEmptyList() throws JsonProcessingException, JSONException {
-        HttpEntity<String> entity = new HttpEntity<>(null, headers);
-
-        ResponseEntity<String> response = restTemplate.exchange(
-                getRootUrl() + "/user", HttpMethod.GET, entity, String.class);
-
-        JSONAssert.assertEquals(mapper.writeValueAsString(Collections.EMPTY_LIST), response.getBody(), false);
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-    }
-
-    @Test
-    void userFindById() throws JSONException, JsonProcessingException {
+    void findById() throws Exception {
         User user = helper.createUser();
 
-        ResponseEntity<String> response = restTemplate.getForEntity(
-                "/user/" + user.getId().toString(), String.class);
+        String token = helper.createUserAdminAndGetToken(user);
 
-        System.out.println(mapper.writeValueAsString(user));
-        System.out.println(response.getBody());
+        MvcResult mvc = super.getById(URL_TEMPLATE, user.getId(), token);
 
-        JSONAssert.assertEquals(mapper.writeValueAsString(user), response.getBody(), false);
-        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertAll(
+                () -> assertEquals(HttpStatus.OK.value(), mvc.getResponse().getStatus()),
+                () -> assertNotNull(getValue(mvc, "$.id")),
+                () -> assertEquals(user.getId().toString(), getValue(mvc, "$.id")),
+                () -> assertEquals(user.getFirstName(), getValue(mvc, "$.firstName"))
+        );
     }
 
     @Test
-    void userFindByIdNotFound() {
-        ResponseEntity<String> response = restTemplate.getForEntity(
-                getRootUrl() + "/user/" + UUID.randomUUID(), String.class);
+    void findByIdFailed() throws Exception {
+        User user = helper.createUser();
+        String token = helper.createUserAdminAndGetToken(user);
 
-        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        MvcResult mvc = super.getById(URL_TEMPLATE, UUID.randomUUID(), token);
+
+        assertEquals(HttpStatus.NOT_FOUND.value(), mvc.getResponse().getStatus());
     }
 
     @Test
-    void userUpdate() throws JsonProcessingException, JSONException {
+    void findAll() throws Exception {
+        User firstUser = helper.createUser();
+
+        String token = helper.createUserAdminAndGetToken(firstUser);
+
+        MvcResult mvc = super.findAll(URL_TEMPLATE, token);
+        List<User> users = helper.getUsersArray(mvc);
+
+        assertAll(
+                () -> assertEquals(MediaType.APPLICATION_JSON.toString(), mvc.getResponse().getContentType()),
+                () -> assertEquals(HttpStatus.OK.value(), mvc.getResponse().getStatus()),
+                () -> assertTrue(users.contains(firstUser))
+        );
+    }
+
+    @Test
+    void update() throws Exception {
         User user = helper.createUser();
         user.setFirstName("new Name");
 
-        HttpEntity<User> request = new HttpEntity<>(user, HttpHeaders.EMPTY);
+        String token = helper.createUserAdminAndGetToken(user);
 
-        ResponseEntity<String> response = restTemplate.exchange(
-                "/user/" + user.getId().toString(), HttpMethod.PUT, request, String.class);
+        MvcResult mvc = super.update(URL_TEMPLATE, user.getId(), user, token);
 
-        JSONAssert.assertEquals(mapper.writeValueAsString(this.headers), response.getBody(), false);
-        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertAll(
+                () -> assertEquals(HttpStatus.OK.value(), mvc.getResponse().getStatus()),
+                () -> assertNotNull(getValue(mvc, "$.id")),
+                () -> assertEquals(user.getId().toString(), getValue(mvc, "$.id")),
+                () -> assertEquals("new Name", getValue(mvc, "$.firstName"))
+        );
     }
 
     @Test
-    void userDeleteById() {
+    void updateValidationFailed() throws Exception {
         User user = helper.createUser();
+        user.setFirstName("n");
 
-        ResponseEntity<String> response = restTemplate.exchange(
-                "/user/" + user.getId().toString(), HttpMethod.DELETE, HttpEntity.EMPTY, String.class);
+        String token = helper.createUserAdminAndGetToken(user);
 
-        assertEquals(HttpStatus.OK, response.getStatusCode());
+        MvcResult mvc = super.update(URL_TEMPLATE, user.getId(), user, token);
+
+        assertAll(
+                () -> assertEquals(HttpStatus.BAD_REQUEST.value(), mvc.getResponse().getStatus()),
+                () -> assertEquals("Validation Failed", getValue(mvc, "$.message")),
+                () -> assertEquals("size must be between 2 and 30", getValue(mvc, "$.details.firstName"))
+        );
     }
 }

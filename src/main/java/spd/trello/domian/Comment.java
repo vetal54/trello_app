@@ -6,6 +6,7 @@ import org.hibernate.Hibernate;
 import spd.trello.domian.common.Resource;
 
 import javax.persistence.*;
+import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.Size;
 import java.util.Objects;
 import java.util.UUID;
@@ -17,8 +18,9 @@ import java.util.UUID;
 @Table(name = "comment")
 public class Comment extends Resource {
 
+    @NotEmpty(message = "Context should not be empty")
     @Column(name = "context")
-    @Size(min = 2, max = 100)
+    @Size(min = 10, max = 100)
     String context;
 
     @Column(name = "card_id")

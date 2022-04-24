@@ -1,124 +1,165 @@
 package spd.trello.controller;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.json.JSONException;
-import org.skyscreamer.jsonassert.JSONAssert;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.web.client.TestRestTemplate;
-import org.springframework.boot.web.server.LocalServerPort;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.test.context.jdbc.Sql;
+import org.springframework.test.web.servlet.MvcResult;
 import spd.trello.Helper;
+import spd.trello.domian.User;
 import spd.trello.domian.Workspace;
 import spd.trello.domian.type.WorkspaceVisibility;
-import org.junit.jupiter.api.Test;
-import org.springframework.http.*;
 
-import java.util.*;
+import java.util.List;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@SpringBootTest
 @Sql(statements = "DELETE FROM workspace")
-class WorkspaceControllerIntegrationTest {
+@Sql(statements = "DELETE FROM user_table")
+class WorkspaceControllerIntegrationTest extends AbstractIntegrationTest<Workspace> {
+
+    private final String URL_TEMPLATE = "/workspace";
 
     @Autowired
     private Helper helper;
-    @Autowired
-    private TestRestTemplate restTemplate;
-
-    @LocalServerPort
-    private int port;
-
-    private final HttpHeaders headers = new HttpHeaders();
-    private final ObjectMapper mapper = new ObjectMapper();
-
-    private String getRootUrl() {
-        return "http://localhost:" + port;
-    }
 
     @Test
-    void workspaceSave() {
+    void create() throws Exception {
         Workspace workspace = new Workspace();
         workspace.setName("name!");
-        workspace.setCreateBy("email@gmail.com");
         workspace.setVisibility(WorkspaceVisibility.PRIVATE);
         workspace.setDescription("description");
 
-        ResponseEntity<Workspace> response = restTemplate
-                .postForEntity(getRootUrl() + "/workspace", workspace, Workspace.class);
+        User user = helper.createUser();
+        String token = helper.createUserAdminAndGetToken(user);
 
-        assertEquals(workspace, response.getBody());
-        assertEquals(HttpStatus.CREATED, response.getStatusCode());
+        MvcResult mvc = super.create(URL_TEMPLATE, workspace, token);
+
+        assertAll(
+                () -> assertEquals(HttpStatus.CREATED.value(), mvc.getResponse().getStatus()),
+                () -> assertNotNull(getValue(mvc, "$.id")),
+                () -> assertEquals(workspace.getId().toString(), getValue(mvc, "$.id")),
+                () -> assertEquals(workspace.getName(), getValue(mvc, "$.name")),
+                () -> assertEquals(workspace.getDescription(), getValue(mvc, "$.description")),
+                () -> assertEquals("admin@gmail.com", getValue(mvc, "$.createBy"))
+        );
     }
 
     @Test
-    void workspaceFindAllNotEmpty() throws JSONException, JsonProcessingException {
+    void createValidationFailed() throws Exception {
+        Workspace workspace = new Workspace();
+        workspace.setVisibility(WorkspaceVisibility.PRIVATE);
+        workspace.setDescription("description");
+
+        User user = helper.createUser();
+        String token = helper.createUserAdminAndGetToken(user);
+
+        MvcResult mvc = super.create(URL_TEMPLATE, workspace, token);
+
+        assertAll(
+                () -> assertEquals(HttpStatus.BAD_REQUEST.value(), mvc.getResponse().getStatus()),
+                () -> assertEquals("Validation Failed", getValue(mvc, "$.message")),
+                () -> assertEquals("Name should not be empty", getValue(mvc, "$.details.name"))
+        );
+    }
+
+    @Test
+    void delete() throws Exception {
+        Workspace workspace = helper.createWorkspace();
+        User user = helper.createUser();
+        String token = helper.createUserAdminAndGetToken(user);
+        MvcResult mvc = super.delete(URL_TEMPLATE, workspace.getId(), token);
+        assertEquals(HttpStatus.OK.value(), mvc.getResponse().getStatus());
+    }
+
+    @Test
+    void findById() throws Exception {
         Workspace workspace = helper.createWorkspace();
 
-        HttpEntity<String> entity = new HttpEntity<>(null, headers);
+        User user = helper.createUser();
+        String token = helper.createUserAdminAndGetToken(user);
 
-        ResponseEntity<String> response = restTemplate.exchange(
-                getRootUrl() + "/workspace", HttpMethod.GET, entity, String.class);
+        MvcResult mvc = super.getById(URL_TEMPLATE, workspace.getId(), token);
 
-        JSONAssert.assertEquals(mapper.writeValueAsString(List.of(workspace)), response.getBody(), false);
-        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertAll(
+                () -> assertEquals(HttpStatus.OK.value(), mvc.getResponse().getStatus()),
+                () -> assertNotNull(getValue(mvc, "$.id")),
+                () -> assertEquals(workspace.getId().toString(), getValue(mvc, "$.id")),
+                () -> assertEquals(workspace.getName(), getValue(mvc, "$.name")),
+                () -> assertEquals(workspace.getDescription(), getValue(mvc, "$.description")),
+                () -> assertEquals("admin@gmail.com", getValue(mvc, "$.createBy"))
+        );
     }
 
     @Test
-    void workspaceFindAllEmptyList() throws JsonProcessingException, JSONException {
-        HttpEntity<String> entity = new HttpEntity<>(null, headers);
+    void findByIdFailed() throws Exception {
+        User user = helper.createUser();
+        String token = helper.createUserAdminAndGetToken(user);
 
-        ResponseEntity<String> response = restTemplate.exchange(
-                getRootUrl() + "/workspace", HttpMethod.GET, entity, String.class);
+        MvcResult mvc = super.getById(URL_TEMPLATE, UUID.randomUUID(), token);
 
-        JSONAssert.assertEquals(mapper.writeValueAsString(Collections.EMPTY_LIST), response.getBody(), false);
-        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(HttpStatus.NOT_FOUND.value(), mvc.getResponse().getStatus());
     }
 
     @Test
-    void workspaceFindById() throws JSONException, JsonProcessingException {
-        Workspace workspace = helper.createWorkspace();
+    void findAll() throws Exception {
+        Workspace firstWorkspace = helper.createWorkspace();
+        Workspace secondWorkspace = helper.createWorkspace();
 
-        ResponseEntity<Workspace> response = restTemplate.getForEntity(
-                "/workspace/" + workspace.getId().toString(), Workspace.class);
+        User user = helper.createUser();
+        String token = helper.createUserAdminAndGetToken(user);
 
-        assertEquals(workspace, response.getBody());
-        assertEquals(HttpStatus.OK, response.getStatusCode());
+        MvcResult mvc = super.findAll(URL_TEMPLATE, token);
+        List<Workspace> workspaces = helper.getWorkspacesArray(mvc);
+
+        assertAll(
+                () -> assertEquals(MediaType.APPLICATION_JSON.toString(), mvc.getResponse().getContentType()),
+                () -> assertEquals(HttpStatus.OK.value(), mvc.getResponse().getStatus()),
+                () -> assertTrue(workspaces.contains(firstWorkspace)),
+                () -> assertTrue(workspaces.contains(secondWorkspace))
+        );
     }
 
     @Test
-    void workspaceFindByIdNotFound() {
-        ResponseEntity<String> response = restTemplate.getForEntity(
-                getRootUrl() + "/workspace/" + UUID.randomUUID(), String.class);
-
-        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-    }
-
-    @Test
-    void workspaceUpdate() throws JsonProcessingException, JSONException {
+    void update() throws Exception {
         Workspace workspace = helper.createWorkspace();
         workspace.setName("new Name");
+        workspace.setDescription("new Description");
 
-        HttpEntity<Workspace> request = new HttpEntity<>(workspace, HttpHeaders.EMPTY);
+        User user = helper.createUser();
+        String token = helper.createUserAdminAndGetToken(user);
 
-        ResponseEntity<String> response = restTemplate.exchange(
-                "/workspace/" + workspace.getId().toString(), HttpMethod.PUT, request, String.class);
+        MvcResult mvc = super.update(URL_TEMPLATE, workspace.getId(), workspace, token);
 
-        JSONAssert.assertEquals(mapper.writeValueAsString(workspace), response.getBody(), false);
-        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertAll(
+                () -> assertEquals(HttpStatus.OK.value(), mvc.getResponse().getStatus()),
+                () -> assertNotNull(getValue(mvc, "$.id")),
+                () -> assertEquals(workspace.getId().toString(), getValue(mvc, "$.id")),
+                () -> assertEquals("new Name", getValue(mvc, "$.name")),
+                () -> assertEquals("new Description", getValue(mvc, "$.description")),
+                () -> assertEquals("admin@gmail.com", getValue(mvc, "$.createBy"))
+        );
     }
 
     @Test
-    void workspaceDeleteById() {
+    void updateValidationFailed() throws Exception {
         Workspace workspace = helper.createWorkspace();
+        workspace.setName("n");
+        workspace.setDescription("new Description");
 
-        ResponseEntity<String> response = restTemplate.exchange(
-                "/workspace/" + workspace.getId().toString(), HttpMethod.DELETE, HttpEntity.EMPTY, String.class);
+        User user = helper.createUser();
+        String token = helper.createUserAdminAndGetToken(user);
 
-        assertEquals(HttpStatus.OK, response.getStatusCode());
+        MvcResult mvc = super.update(URL_TEMPLATE, workspace.getId(), workspace, token);
+
+        assertAll(
+                () -> assertEquals(HttpStatus.BAD_REQUEST.value(), mvc.getResponse().getStatus()),
+                () -> assertEquals("Validation Failed", getValue(mvc, "$.message")),
+                () -> assertEquals("size must be between 2 and 30", getValue(mvc, "$.details.name"))
+        );
     }
 }
-
-

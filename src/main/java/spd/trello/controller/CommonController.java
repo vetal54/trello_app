@@ -11,7 +11,7 @@ import java.util.UUID;
 
 public interface CommonController<E extends Domain> {
     ResponseEntity<E> create(@Valid E resource) throws IOException;
-    ResponseEntity<E> update(UUID id, E resource);
+    ResponseEntity<E> update(UUID id, @Valid E resource);
     HttpStatus delete(UUID id);
     ResponseEntity<E> readById(UUID id);
     List<E> readAll();

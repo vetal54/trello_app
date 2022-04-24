@@ -1,52 +1,40 @@
 package spd.trello.controller;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.json.JSONException;
 import org.junit.jupiter.api.Test;
-import org.skyscreamer.jsonassert.JSONAssert;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.web.client.TestRestTemplate;
-import org.springframework.boot.web.server.LocalServerPort;
-import org.springframework.http.*;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.test.context.jdbc.Sql;
+import org.springframework.test.web.servlet.MvcResult;
 import spd.trello.Helper;
-import spd.trello.domian.*;
+import spd.trello.domian.Card;
+import spd.trello.domian.CheckList;
+import spd.trello.domian.Reminder;
+import spd.trello.domian.User;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
-import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@SpringBootTest
 @Sql(statements = "DELETE FROM card")
-class CardControllerIntegrationTest {
+@Sql(statements = "DELETE FROM user_table")
+class CardControllerIntegrationTest extends AbstractIntegrationTest<Card> {
+
+    private final String URL_TEMPLATE = "/card";
 
     @Autowired
     private Helper helper;
-    @Autowired
-    private TestRestTemplate restTemplate;
-
-    @LocalServerPort
-    private int port;
-
-    private final HttpHeaders headers = new HttpHeaders();
-    private final ObjectMapper mapper = new ObjectMapper();
-
-    private String getRootUrl() {
-        return "http://localhost:" + port;
-    }
 
     @Test
-    void cardSave() {
+    void create() throws Exception {
         Card card = new Card();
         card.setName("string name");
-        card.setCreateBy("email@gmail.com");
         card.setDescription("new description");
         card.setCardListId(helper.createCardList().getId());
         Reminder reminder = new Reminder();
@@ -58,77 +46,142 @@ class CardControllerIntegrationTest {
         checkList.setName("string");
         card.setCheckList(checkList);
 
-        ResponseEntity<Card> response = restTemplate.postForEntity(
-                getRootUrl() + "/card", card, Card.class);
+        User user = helper.createUser();
+        String token = helper.createUserAdminAndGetToken(user);
 
-        assertEquals(card, response.getBody());
-        assertEquals(HttpStatus.CREATED, response.getStatusCode());
+        MvcResult mvc = super.create(URL_TEMPLATE, card, token);
+
+        assertAll(
+                () -> assertEquals(HttpStatus.CREATED.value(), mvc.getResponse().getStatus()),
+                () -> assertNotNull(getValue(mvc, "$.id")),
+                () -> assertEquals(card.getId().toString(), getValue(mvc, "$.id")),
+                () -> assertEquals(card.getName(), getValue(mvc, "$.name")),
+                () -> assertEquals(card.getDescription(), getValue(mvc, "$.description")),
+                () -> assertEquals("admin@gmail.com", getValue(mvc, "$.createBy"))
+        );
     }
 
     @Test
-    void cardFindAllNotEmpty() throws JSONException, JsonProcessingException {
+    void createValidationFailed() throws Exception {
+        Card card = new Card();
+        card.setDescription("new description");
+        card.setCardListId(helper.createCardList().getId());
+        Reminder reminder = new Reminder();
+        reminder.setStart(LocalDateTime.now().plus(Duration.of(5, ChronoUnit.MINUTES)));
+        reminder.setRemindOn(LocalDateTime.now().plus(Duration.of(10, ChronoUnit.MINUTES)));
+        reminder.setEnd(LocalDateTime.now().plus(Duration.of(15, ChronoUnit.MINUTES)));
+        card.setReminder(reminder);
+        CheckList checkList = new CheckList();
+        checkList.setName("string");
+        card.setCheckList(checkList);
+
+        User user = helper.createUser();
+        String token = helper.createUserAdminAndGetToken(user);
+
+        MvcResult mvc = super.create(URL_TEMPLATE, card, token);
+
+        assertAll(
+                () -> assertEquals(HttpStatus.BAD_REQUEST.value(), mvc.getResponse().getStatus()),
+                () -> assertEquals("Validation Failed", getValue(mvc, "$.message")),
+                () -> assertEquals("Name should not be empty", getValue(mvc, "$.details.name"))
+        );
+    }
+
+    @Test
+    void delete() throws Exception {
+        Card card = helper.createCard();
+        User user = helper.createUser();
+
+        String token = helper.createUserAdminAndGetToken(user);
+
+        MvcResult mvc = super.delete(URL_TEMPLATE, card.getId(), token);
+        assertEquals(HttpStatus.OK.value(), mvc.getResponse().getStatus());
+    }
+
+    @Test
+    void findById() throws Exception {
         Card card = helper.createCard();
 
-        HttpEntity<String> entity = new HttpEntity<>(null, headers);
+        User user = helper.createUser();
+        String token = helper.createUserAdminAndGetToken(user);
 
-        ResponseEntity<String> response = restTemplate.exchange(
-                getRootUrl() + "/card", HttpMethod.GET, entity, String.class);
+        MvcResult mvc = super.getById(URL_TEMPLATE, card.getId(), token);
 
-        JSONAssert.assertEquals(mapper.writeValueAsString(List.of(card)), response.getBody(), false);
-        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertAll(
+                () -> assertEquals(HttpStatus.OK.value(), mvc.getResponse().getStatus()),
+                () -> assertNotNull(getValue(mvc, "$.id")),
+                () -> assertEquals(card.getId().toString(), getValue(mvc, "$.id")),
+                () -> assertEquals(card.getName(), getValue(mvc, "$.name")),
+                () -> assertEquals(card.getDescription(), getValue(mvc, "$.description")),
+                () -> assertEquals("admin@gmail.com", getValue(mvc, "$.createBy"))
+        );
     }
 
     @Test
-    void cardFindAllEmptyList() throws JsonProcessingException, JSONException {
-        HttpEntity<String> entity = new HttpEntity<>(null, headers);
+    void findByIdFailed() throws Exception {
+        User user = helper.createUser();
+        String token = helper.createUserAdminAndGetToken(user);
 
-        ResponseEntity<String> response = restTemplate.exchange(
-                getRootUrl() + "/card", HttpMethod.GET, entity, String.class);
+        MvcResult mvc = super.getById(URL_TEMPLATE, UUID.randomUUID(), token);
 
-        JSONAssert.assertEquals(mapper.writeValueAsString(Collections.EMPTY_LIST), response.getBody(), false);
-        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(HttpStatus.NOT_FOUND.value(), mvc.getResponse().getStatus());
     }
 
     @Test
-    void cardFindById() throws JSONException, JsonProcessingException {
-        Card card = helper.createCard();
+    void findAll() throws Exception {
+        Card firstCard = helper.createCard();
+        Card secondCard = helper.createCard();
 
-        ResponseEntity<String> response = restTemplate.getForEntity(
-                "/card/" + card.getId().toString(), String.class);
+        User user = helper.createUser();
+        String token = helper.createUserAdminAndGetToken(user);
 
-        JSONAssert.assertEquals(mapper.writeValueAsString(card), response.getBody(), false);
-        assertEquals(HttpStatus.OK, response.getStatusCode());
+        MvcResult mvc = super.findAll(URL_TEMPLATE, token);
+        List<Card> cards = helper.getCardsArray(mvc);
+
+        assertAll(
+                () -> assertEquals(MediaType.APPLICATION_JSON.toString(), mvc.getResponse().getContentType()),
+                () -> assertEquals(HttpStatus.OK.value(), mvc.getResponse().getStatus()),
+                () -> assertTrue(cards.contains(firstCard)),
+                () -> assertTrue(cards.contains(secondCard))
+        );
     }
 
     @Test
-    void cardFindByIdNotFound() {
-        ResponseEntity<String> response = restTemplate.getForEntity(
-                getRootUrl() + "/card" + UUID.randomUUID(), String.class);
-
-        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-    }
-
-    @Test
-    void cardUpdate() throws JsonProcessingException, JSONException {
+    void update() throws Exception {
         Card card = helper.createCard();
         card.setName("new Name");
+        card.setDescription("new Description");
 
-        HttpEntity<Card> request = new HttpEntity<>(card, HttpHeaders.EMPTY);
+        User user = helper.createUser();
+        String token = helper.createUserAdminAndGetToken(user);
 
-        ResponseEntity<String> response = restTemplate.exchange(
-                "/card/" + card.getId().toString(), HttpMethod.PUT, request, String.class);
+        MvcResult mvc = super.update(URL_TEMPLATE, card.getId(), card, token);
 
-        JSONAssert.assertEquals(mapper.writeValueAsString(card), response.getBody(), false);
-        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertAll(
+                () -> assertEquals(HttpStatus.OK.value(), mvc.getResponse().getStatus()),
+                () -> assertNotNull(getValue(mvc, "$.id")),
+                () -> assertEquals(card.getId().toString(), getValue(mvc, "$.id")),
+                () -> assertEquals("new Name", getValue(mvc, "$.name")),
+                () -> assertEquals("new Description", getValue(mvc, "$.description")),
+                () -> assertEquals("admin@gmail.com", getValue(mvc, "$.createBy"))
+        );
     }
 
     @Test
-    void cardDeleteById() {
+    void updateValidationFailed() throws Exception {
         Card card = helper.createCard();
+        card.setName("n");
+        card.setDescription("new Description");
 
-        ResponseEntity<String> response = restTemplate.exchange(
-                "/card/" + card.getId().toString(), HttpMethod.DELETE, HttpEntity.EMPTY, String.class);
+        User user = helper.createUser();
+        String token = helper.createUserAdminAndGetToken(user);
 
-        assertEquals(HttpStatus.OK, response.getStatusCode());
+        MvcResult mvc = super.update(URL_TEMPLATE, card.getId(), card, token);
+
+        assertAll(
+                () -> assertEquals(HttpStatus.BAD_REQUEST.value(), mvc.getResponse().getStatus()),
+                () -> assertEquals("Validation Failed", getValue(mvc, "$.message")),
+                () -> assertEquals("size must be between 2 and 30", getValue(mvc, "$.details.name"))
+        );
     }
 }

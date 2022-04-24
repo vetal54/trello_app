@@ -1,122 +1,164 @@
 package spd.trello.controller;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.json.JSONException;
 import org.junit.jupiter.api.Test;
-import org.skyscreamer.jsonassert.JSONAssert;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.web.client.TestRestTemplate;
-import org.springframework.boot.web.server.LocalServerPort;
-import org.springframework.http.*;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.test.context.jdbc.Sql;
+import org.springframework.test.web.servlet.MvcResult;
 import spd.trello.Helper;
 import spd.trello.domian.Label;
+import spd.trello.domian.User;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@SpringBootTest
 @Sql(statements = "DELETE FROM label")
-class LabelControllerIntegrationTest {
+@Sql(statements = "DELETE FROM user_table")
+class LabelControllerIntegrationTest extends AbstractIntegrationTest<Label> {
+
+    private final String URL_TEMPLATE = "/label";
 
     @Autowired
     private Helper helper;
-    @Autowired
-    private TestRestTemplate restTemplate;
-
-    @LocalServerPort
-    private int port;
-
-    private final HttpHeaders headers = new HttpHeaders();
-    private final ObjectMapper mapper = new ObjectMapper();
-
-    private String getRootUrl() {
-        return "http://localhost:" + port;
-    }
 
     @Test
-    void labelSave() throws JsonProcessingException, JSONException {
+    void create() throws Exception {
         Label label = new Label();
         label.setName("string");
         label.setColor("color");
         label.setCardId(helper.createCard().getId());
 
-        ResponseEntity<String> response = restTemplate
-                .postForEntity(getRootUrl() + "/label", label, String.class);
+        User user = helper.createUser();
+        String token = helper.createUserAdminAndGetToken(user);
 
-        JSONAssert.assertEquals(mapper.writeValueAsString(label), response.getBody(), false);
-        assertEquals(HttpStatus.CREATED, response.getStatusCode());
+        MvcResult mvc = super.create(URL_TEMPLATE, label, token);
+
+        assertAll(
+                () -> assertEquals(HttpStatus.CREATED.value(), mvc.getResponse().getStatus()),
+                () -> assertNotNull(getValue(mvc, "$.id")),
+                () -> assertEquals(label.getId().toString(), getValue(mvc, "$.id")),
+                () -> assertEquals(label.getName(), getValue(mvc, "$.name")),
+                () -> assertEquals(label.getColor(), getValue(mvc, "$.color"))
+        );
     }
 
     @Test
-    void labelFindAllNotEmpty() throws JSONException, JsonProcessingException {
+    void createValidationFailed() throws Exception {
+        Label label = new Label();
+        label.setColor("color");
+        label.setCardId(helper.createCard().getId());
+
+        User user = helper.createUser();
+        String token = helper.createUserAdminAndGetToken(user);
+
+        MvcResult mvc = super.create(URL_TEMPLATE, label, token);
+
+        assertAll(
+                () -> assertEquals(HttpStatus.BAD_REQUEST.value(), mvc.getResponse().getStatus()),
+                () -> assertEquals("Validation Failed", getValue(mvc, "$.message")),
+                () -> assertEquals("Name should not be empty!", getValue(mvc, "$.details.name"))
+        );
+    }
+
+    @Test
+    void delete() throws Exception {
+        Label label = helper.createLabel();
+        User user = helper.createUser();
+
+        String token = helper.createUserAdminAndGetToken(user);
+
+        MvcResult mvc = super.delete(URL_TEMPLATE, label.getId(), token);
+        assertEquals(HttpStatus.OK.value(), mvc.getResponse().getStatus());
+    }
+
+    @Test
+    void findById() throws Exception {
         Label label = helper.createLabel();
 
-        HttpEntity<String> entity = new HttpEntity<>(null, headers);
+        User user = helper.createUser();
+        String token = helper.createUserAdminAndGetToken(user);
 
-        ResponseEntity<String> response = restTemplate.exchange(
-                getRootUrl() + "/label", HttpMethod.GET, entity, String.class);
+        MvcResult mvc = super.getById(URL_TEMPLATE, label.getId(), token);
 
-        JSONAssert.assertEquals(mapper.writeValueAsString(List.of(label)), response.getBody(), false);
-        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertAll(
+                () -> assertEquals(HttpStatus.OK.value(), mvc.getResponse().getStatus()),
+                () -> assertNotNull(getValue(mvc, "$.id")),
+                () -> assertEquals(label.getId().toString(), getValue(mvc, "$.id")),
+                () -> assertEquals(label.getName(), getValue(mvc, "$.name")),
+                () -> assertEquals(label.getColor(), getValue(mvc, "$.color"))
+        );
     }
 
     @Test
-    void labelFindAllEmptyList() throws JsonProcessingException, JSONException {
-        HttpEntity<String> entity = new HttpEntity<>(null, headers);
+    void findByIdFailed() throws Exception {
+        User user = helper.createUser();
+        String token = helper.createUserAdminAndGetToken(user);
 
-        ResponseEntity<String> response = restTemplate.exchange(
-                getRootUrl() + "/label", HttpMethod.GET, entity, String.class);
+        MvcResult mvc = super.getById(URL_TEMPLATE, UUID.randomUUID(), token);
 
-        JSONAssert.assertEquals(mapper.writeValueAsString(Collections.EMPTY_LIST), response.getBody(), false);
-        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(HttpStatus.NOT_FOUND.value(), mvc.getResponse().getStatus());
     }
 
     @Test
-    void labelFindById() throws JSONException, JsonProcessingException {
-        Label label = helper.createLabel();
+    void findAll() throws Exception {
+        Label firstLabel = helper.createLabel();
+        Label secondLabel = helper.createLabel();
 
-        ResponseEntity<String> response = restTemplate.getForEntity(
-                "/label/" + label.getId().toString(), String.class);
+        User user = helper.createUser();
+        String token = helper.createUserAdminAndGetToken(user);
 
-        JSONAssert.assertEquals(mapper.writeValueAsString(label), response.getBody(), false);
-        assertEquals(HttpStatus.OK, response.getStatusCode());
+        MvcResult mvc = super.findAll(URL_TEMPLATE, token);
+        List<Label> labels = helper.getLabelsArray(mvc);
+
+        assertAll(
+                () -> assertEquals(MediaType.APPLICATION_JSON.toString(), mvc.getResponse().getContentType()),
+                () -> assertEquals(HttpStatus.OK.value(), mvc.getResponse().getStatus()),
+                () -> assertTrue(labels.contains(firstLabel)),
+                () -> assertTrue(labels.contains(secondLabel))
+        );
     }
 
     @Test
-    void labelFindByIdNotFound() {
-        ResponseEntity<String> response = restTemplate.getForEntity(
-                getRootUrl() + "/label/" + UUID.randomUUID(), String.class);
-
-        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-    }
-
-    @Test
-    void labelUpdate() throws JsonProcessingException, JSONException {
+    void update() throws Exception {
         Label label = helper.createLabel();
         label.setName("new Name");
+        label.setColor("new Color");
 
-        HttpEntity<Label> request = new HttpEntity<>(label, HttpHeaders.EMPTY);
+        User user = helper.createUser();
+        String token = helper.createUserAdminAndGetToken(user);
 
-        ResponseEntity<String> response = restTemplate.exchange(
-                "/label/" + label.getId().toString(), HttpMethod.PUT, request, String.class);
+        MvcResult mvc = super.update(URL_TEMPLATE, label.getId(), label, token);
 
-        JSONAssert.assertEquals(mapper.writeValueAsString(this.headers), response.getBody(), false);
-        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertAll(
+                () -> assertEquals(HttpStatus.OK.value(), mvc.getResponse().getStatus()),
+                () -> assertNotNull(getValue(mvc, "$.id")),
+                () -> assertEquals(label.getId().toString(), getValue(mvc, "$.id")),
+                () -> assertEquals("new Name", getValue(mvc, "$.name")),
+                () -> assertEquals("new Color", getValue(mvc, "$.color"))
+        );
     }
 
     @Test
-    void labelDeleteById() {
+    void updateValidationFailed() throws Exception {
         Label label = helper.createLabel();
+        label.setName("n");
+        label.setColor("n");
 
-        ResponseEntity<String> response = restTemplate.exchange(
-                "/label/" + label.getId().toString(), HttpMethod.DELETE, HttpEntity.EMPTY, String.class);
+        User user = helper.createUser();
+        String token = helper.createUserAdminAndGetToken(user);
 
-        assertEquals(HttpStatus.OK, response.getStatusCode());
+        MvcResult mvc = super.update(URL_TEMPLATE, label.getId(), label, token);
+
+        assertAll(
+                () -> assertEquals(HttpStatus.BAD_REQUEST.value(), mvc.getResponse().getStatus()),
+                () -> assertEquals("Validation Failed", getValue(mvc, "$.message")),
+                () -> assertEquals("size must be between 2 and 30", getValue(mvc, "$.details.name")),
+                () -> assertEquals("size must be between 5 and 30", getValue(mvc, "$.details.color"))
+        );
     }
 }

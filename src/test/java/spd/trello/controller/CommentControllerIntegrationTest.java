@@ -1,121 +1,159 @@
 package spd.trello.controller;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.json.JSONException;
 import org.junit.jupiter.api.Test;
-import org.skyscreamer.jsonassert.JSONAssert;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.web.client.TestRestTemplate;
-import org.springframework.boot.web.server.LocalServerPort;
-import org.springframework.http.*;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.test.context.jdbc.Sql;
+import org.springframework.test.web.servlet.MvcResult;
 import spd.trello.Helper;
 import spd.trello.domian.Comment;
+import spd.trello.domian.User;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@SpringBootTest
 @Sql(statements = "DELETE FROM comment")
-class CommentControllerIntegrationTest {
+@Sql(statements = "DELETE FROM user_table")
+class CommentControllerIntegrationTest extends AbstractIntegrationTest<Comment> {
+
+    private final String URL_TEMPLATE = "/comment";
 
     @Autowired
     private Helper helper;
-    @Autowired
-    private TestRestTemplate restTemplate;
-
-    @LocalServerPort
-    private int port;
-
-    private final HttpHeaders headers = new HttpHeaders();
-    private final ObjectMapper mapper = new ObjectMapper();
-
-    private String getRootUrl() {
-        return "http://localhost:" + port;
-    }
 
     @Test
-    void commentSave() throws JsonProcessingException, JSONException {
+    void create() throws Exception {
         Comment comment = new Comment();
         comment.setContext("context text! Hello!");
-        comment.setCreateBy("email@gmail.com");
         comment.setCardId(helper.createCard().getId());
-        ResponseEntity<String> response = restTemplate
-                .postForEntity(getRootUrl() + "/comment", comment, String.class);
 
-        JSONAssert.assertEquals(mapper.writeValueAsString(comment), response.getBody(), false);
-        assertEquals(HttpStatus.CREATED, response.getStatusCode());
+        User user = helper.createUser();
+        String token = helper.createUserAdminAndGetToken(user);
+
+        MvcResult mvc = super.create(URL_TEMPLATE, comment, token);
+
+        assertAll(
+                () -> assertEquals(HttpStatus.CREATED.value(), mvc.getResponse().getStatus()),
+                () -> assertNotNull(getValue(mvc, "$.id")),
+                () -> assertEquals(comment.getId().toString(), getValue(mvc, "$.id")),
+                () -> assertEquals(comment.getContext(), getValue(mvc, "$.context")),
+                () -> assertEquals("admin@gmail.com", getValue(mvc, "$.createBy"))
+        );
     }
 
     @Test
-    void commentFindAllNotEmpty() throws JSONException, JsonProcessingException {
+    void createValidationFailed() throws Exception {
+        Comment comment = new Comment();
+        comment.setCardId(helper.createCard().getId());
+
+        User user = helper.createUser();
+        String token = helper.createUserAdminAndGetToken(user);
+
+        MvcResult mvc = super.create(URL_TEMPLATE, comment, token);
+
+        assertAll(
+                () -> assertEquals(HttpStatus.BAD_REQUEST.value(), mvc.getResponse().getStatus()),
+                () -> assertEquals("Validation Failed", getValue(mvc, "$.message")),
+                () -> assertEquals("Context should not be empty", getValue(mvc, "$.details.context"))
+        );
+    }
+
+    @Test
+    void delete() throws Exception {
+        Comment comment = helper.createComment();
+        User user = helper.createUser();
+
+        String token = helper.createUserAdminAndGetToken(user);
+
+        MvcResult mvc = super.delete(URL_TEMPLATE, comment.getId(), token);
+        assertEquals(HttpStatus.OK.value(), mvc.getResponse().getStatus());
+    }
+
+    @Test
+    void findById() throws Exception {
         Comment comment = helper.createComment();
 
-        HttpEntity<String> entity = new HttpEntity<>(null, headers);
+        User user = helper.createUser();
+        String token = helper.createUserAdminAndGetToken(user);
 
-        ResponseEntity<String> response = restTemplate.exchange(
-                getRootUrl() + "/comment", HttpMethod.GET, entity, String.class);
+        MvcResult mvc = super.getById(URL_TEMPLATE, comment.getId(), token);
 
-        JSONAssert.assertEquals(mapper.writeValueAsString(List.of(comment)), response.getBody(), false);
-        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertAll(
+                () -> assertEquals(HttpStatus.OK.value(), mvc.getResponse().getStatus()),
+                () -> assertNotNull(getValue(mvc, "$.id")),
+                () -> assertEquals(comment.getId().toString(), getValue(mvc, "$.id")),
+                () -> assertEquals(comment.getContext(), getValue(mvc, "$.context")),
+                () -> assertEquals("admin@gmail.com", getValue(mvc, "$.createBy"))
+        );
     }
 
     @Test
-    void commentFindAllEmptyList() throws JsonProcessingException, JSONException {
-        HttpEntity<String> entity = new HttpEntity<>(null, headers);
+    void findByIdFailed() throws Exception {
+        User user = helper.createUser();
+        String token = helper.createUserAdminAndGetToken(user);
 
-        ResponseEntity<String> response = restTemplate.exchange(
-                getRootUrl() + "/comment", HttpMethod.GET, entity, String.class);
+        MvcResult mvc = super.getById(URL_TEMPLATE, UUID.randomUUID(), token);
 
-        JSONAssert.assertEquals(mapper.writeValueAsString(Collections.EMPTY_LIST), response.getBody(), false);
-        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(HttpStatus.NOT_FOUND.value(), mvc.getResponse().getStatus());
     }
 
     @Test
-    void commentFindById() throws JSONException, JsonProcessingException {
-        Comment comment = helper.createComment();
+    void findAll() throws Exception {
+        Comment firstComment = helper.createComment();
+        Comment secondComment = helper.createComment();
 
-        ResponseEntity<String> response = restTemplate.getForEntity(
-                "/comment/" + comment.getId().toString(), String.class);
+        User user = helper.createUser();
+        String token = helper.createUserAdminAndGetToken(user);
 
-        JSONAssert.assertEquals(mapper.writeValueAsString(comment), response.getBody(), false);
-        assertEquals(HttpStatus.OK, response.getStatusCode());
+        MvcResult mvc = super.findAll(URL_TEMPLATE, token);
+        List<Comment> comments = helper.getCommentsArray(mvc);
+
+        assertAll(
+                () -> assertEquals(MediaType.APPLICATION_JSON.toString(), mvc.getResponse().getContentType()),
+                () -> assertEquals(HttpStatus.OK.value(), mvc.getResponse().getStatus()),
+                () -> assertTrue(comments.contains(firstComment)),
+                () -> assertTrue(comments.contains(secondComment))
+        );
     }
 
     @Test
-    void commentFindByIdNotFound() {
-        ResponseEntity<String> response = restTemplate.getForEntity(
-                getRootUrl() + "/comment/" + UUID.randomUUID(), String.class);
-
-        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-    }
-
-    @Test
-    void commentUpdate() throws JsonProcessingException, JSONException {
+    void update() throws Exception {
         Comment comment = helper.createComment();
         comment.setContext("new Context");
 
-        HttpEntity<Comment> request = new HttpEntity<>(comment, HttpHeaders.EMPTY);
+        User user = helper.createUser();
+        String token = helper.createUserAdminAndGetToken(user);
 
-        ResponseEntity<String> response = restTemplate.exchange(
-                "/comment/" + comment.getId().toString(), HttpMethod.PUT, request, String.class);
+        MvcResult mvc = super.update(URL_TEMPLATE, comment.getId(), comment, token);
 
-        JSONAssert.assertEquals(mapper.writeValueAsString(comment), response.getBody(), false);
-        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertAll(
+                () -> assertEquals(HttpStatus.OK.value(), mvc.getResponse().getStatus()),
+                () -> assertNotNull(getValue(mvc, "$.id")),
+                () -> assertEquals(comment.getId().toString(), getValue(mvc, "$.id")),
+                () -> assertEquals("new Context", getValue(mvc, "$.context")),
+                () -> assertEquals("admin@gmail.com", getValue(mvc, "$.createBy"))
+        );
     }
 
     @Test
-    void commentDeleteById() {
+    void updateValidationFailed() throws Exception {
         Comment comment = helper.createComment();
+        comment.setContext("new Con");
 
-        ResponseEntity<String> response = restTemplate.exchange(
-                "/comment/" + comment.getId().toString(), HttpMethod.DELETE, HttpEntity.EMPTY, String.class);
+        User user = helper.createUser();
+        String token = helper.createUserAdminAndGetToken(user);
 
-        assertEquals(HttpStatus.OK, response.getStatusCode());
+        MvcResult mvc = super.update(URL_TEMPLATE, comment.getId(), comment, token);
+
+        assertAll(
+                () -> assertEquals(HttpStatus.BAD_REQUEST.value(), mvc.getResponse().getStatus()),
+                () -> assertEquals("Validation Failed", getValue(mvc, "$.message")),
+                () -> assertEquals("size must be between 10 and 100", getValue(mvc, "$.details.context"))
+        );
     }
 }

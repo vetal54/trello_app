@@ -1,123 +1,161 @@
 package spd.trello.controller;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.json.JSONException;
 import org.junit.jupiter.api.Test;
-import org.skyscreamer.jsonassert.JSONAssert;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.web.client.TestRestTemplate;
-import org.springframework.boot.web.server.LocalServerPort;
-import org.springframework.http.*;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.test.context.jdbc.Sql;
+import org.springframework.test.web.servlet.MvcResult;
 import spd.trello.Helper;
 import spd.trello.domian.Attachment;
+import spd.trello.domian.User;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@SpringBootTest
 @Sql(statements = "DELETE FROM attachment")
-class AttachmentControllerIntegrationTest {
+@Sql(statements = "DELETE FROM user_table")
+class AttachmentControllerIntegrationTest extends AbstractIntegrationTest<Attachment> {
+
+    private final String URL_TEMPLATE = "/attachment";
 
     @Autowired
     private Helper helper;
-    @Autowired
-    private TestRestTemplate restTemplate;
-
-    @LocalServerPort
-    private int port;
-
-    private final HttpHeaders headers = new HttpHeaders();
-    private final ObjectMapper mapper = new ObjectMapper();
-
-    private String getRootUrl() {
-        return "http://localhost:" + port;
-    }
 
     @Test
-    void attachmentSave() throws JsonProcessingException, JSONException {
+    void create() throws Exception {
         Attachment attachment = new Attachment();
         attachment.setName("string");
         attachment.setLink("https://www.instagram.com/");
-        attachment.setCreateBy("string@gmail.com");
         attachment.setCardId(helper.createCard().getId());
 
-        ResponseEntity<String> response = restTemplate
-                .postForEntity(getRootUrl() + "/attachment", attachment, String.class);
+        User user = helper.createUser();
+        String token = helper.createUserAdminAndGetToken(user);
 
-        JSONAssert.assertEquals(mapper.writeValueAsString(attachment), response.getBody(), false);
-        assertEquals(HttpStatus.CREATED, response.getStatusCode());
+        MvcResult mvc = super.create(URL_TEMPLATE, attachment, token);
+
+        assertAll(
+                () -> assertEquals(HttpStatus.CREATED.value(), mvc.getResponse().getStatus()),
+                () -> assertNotNull(getValue(mvc, "$.id")),
+                () -> assertEquals(attachment.getId().toString(), getValue(mvc, "$.id")),
+                () -> assertEquals(attachment.getName(), getValue(mvc, "$.name")),
+                () -> assertEquals("admin@gmail.com", getValue(mvc, "$.createBy"))
+        );
     }
 
     @Test
-    void attachmentFindAllNotEmpty() throws JSONException, JsonProcessingException {
+    void createValidationFailed() throws Exception {
+        Attachment attachment = new Attachment();
+        attachment.setLink("https://www.instagram.com/");
+        attachment.setCardId(helper.createCard().getId());
+
+        User user = helper.createUser();
+        String token = helper.createUserAdminAndGetToken(user);
+
+        MvcResult mvc = super.create(URL_TEMPLATE, attachment, token);
+
+        assertAll(
+                () -> assertEquals(HttpStatus.BAD_REQUEST.value(), mvc.getResponse().getStatus()),
+                () -> assertEquals("Validation Failed", getValue(mvc, "$.message")),
+                () -> assertEquals("Name should not be empty", getValue(mvc, "$.details.name"))
+        );
+    }
+
+    @Test
+    void delete() throws Exception {
+        Attachment attachment = helper.createAttachment();
+        User user = helper.createUser();
+
+        String token = helper.createUserAdminAndGetToken(user);
+
+        MvcResult mvc = super.delete(URL_TEMPLATE, attachment.getId(), token);
+        assertEquals(HttpStatus.OK.value(), mvc.getResponse().getStatus());
+    }
+
+    @Test
+    void findById() throws Exception {
         Attachment attachment = helper.createAttachment();
 
-        HttpEntity<String> entity = new HttpEntity<>(null, headers);
+        User user = helper.createUser();
+        String token = helper.createUserAdminAndGetToken(user);
 
-        ResponseEntity<String> response = restTemplate.exchange(
-                getRootUrl() + "/attachment", HttpMethod.GET, entity, String.class);
+        MvcResult mvc = super.getById(URL_TEMPLATE, attachment.getId(), token);
 
-        JSONAssert.assertEquals(mapper.writeValueAsString(List.of(attachment)), response.getBody(), false);
-        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertAll(
+                () -> assertEquals(HttpStatus.OK.value(), mvc.getResponse().getStatus()),
+                () -> assertNotNull(getValue(mvc, "$.id")),
+                () -> assertEquals(attachment.getId().toString(), getValue(mvc, "$.id")),
+                () -> assertEquals(attachment.getName(), getValue(mvc, "$.name")),
+                () -> assertEquals("admin@gmail.com", getValue(mvc, "$.createBy"))
+        );
     }
 
     @Test
-    void attachmentFindAllEmptyList() throws JsonProcessingException, JSONException {
-        HttpEntity<String> entity = new HttpEntity<>(null, headers);
+    void findByIdFailed() throws Exception {
+        User user = helper.createUser();
+        String token = helper.createUserAdminAndGetToken(user);
 
-        ResponseEntity<String> response = restTemplate.exchange(
-                getRootUrl() + "/attachment", HttpMethod.GET, entity, String.class);
+        MvcResult mvc = super.getById(URL_TEMPLATE, UUID.randomUUID(), token);
 
-        JSONAssert.assertEquals(mapper.writeValueAsString(Collections.EMPTY_LIST), response.getBody(), false);
-        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(HttpStatus.NOT_FOUND.value(), mvc.getResponse().getStatus());
     }
 
     @Test
-    void attachmentFindById() throws JSONException, JsonProcessingException {
-        Attachment attachment = helper.createAttachment();
+    void findAll() throws Exception {
+        Attachment firstAttachment = helper.createAttachment();
+        Attachment secondAttachment = helper.createAttachment();
 
-        ResponseEntity<String> response = restTemplate.getForEntity(
-                "/attachment/" + attachment.getId().toString(), String.class);
+        User user = helper.createUser();
+        String token = helper.createUserAdminAndGetToken(user);
 
-        JSONAssert.assertEquals(mapper.writeValueAsString(attachment), response.getBody(), false);
-        assertEquals(HttpStatus.OK, response.getStatusCode());
+        MvcResult mvc = super.findAll(URL_TEMPLATE, token);
+        List<Attachment> attachments = helper.getAttachmentsArray(mvc);
+
+        assertAll(
+                () -> assertEquals(MediaType.APPLICATION_JSON.toString(), mvc.getResponse().getContentType()),
+                () -> assertEquals(HttpStatus.OK.value(), mvc.getResponse().getStatus()),
+                () -> assertTrue(attachments.contains(firstAttachment)),
+                () -> assertTrue(attachments.contains(secondAttachment))
+        );
     }
 
     @Test
-    void attachmentFindByIdNotFound() {
-        ResponseEntity<String> response = restTemplate.getForEntity(
-                getRootUrl() + "/attachment/" + UUID.randomUUID(), String.class);
-
-        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-    }
-
-    @Test
-    void attachmentUpdate() throws JsonProcessingException, JSONException {
+    void update() throws Exception {
         Attachment attachment = helper.createAttachment();
         attachment.setName("new Name");
 
-        HttpEntity<Attachment> request = new HttpEntity<>(attachment, HttpHeaders.EMPTY);
+        User user = helper.createUser();
+        String token = helper.createUserAdminAndGetToken(user);
 
-        ResponseEntity<String> response = restTemplate.exchange(
-                "/attachment/" + attachment.getId().toString(), HttpMethod.PUT, request, String.class);
+        MvcResult mvc = super.update(URL_TEMPLATE, attachment.getId(), attachment, token);
 
-        JSONAssert.assertEquals(mapper.writeValueAsString(headers), response.getBody(), false);
-        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertAll(
+                () -> assertEquals(HttpStatus.OK.value(), mvc.getResponse().getStatus()),
+                () -> assertNotNull(getValue(mvc, "$.id")),
+                () -> assertEquals(attachment.getId().toString(), getValue(mvc, "$.id")),
+                () -> assertEquals("new Name", getValue(mvc, "$.name")),
+                () -> assertEquals("admin@gmail.com", getValue(mvc, "$.createBy"))
+        );
     }
 
     @Test
-    void attachmentDeleteById() {
+    void updateValidationFailed() throws Exception {
         Attachment attachment = helper.createAttachment();
+        attachment.setName("n");
 
-        ResponseEntity<String> response = restTemplate.exchange(
-                "/attachment/" + attachment.getId().toString(), HttpMethod.DELETE, HttpEntity.EMPTY, String.class);
+        User user = helper.createUser();
+        String token = helper.createUserAdminAndGetToken(user);
 
-        assertEquals(HttpStatus.OK, response.getStatusCode());
+        MvcResult mvc = super.update(URL_TEMPLATE, attachment.getId(), attachment, token);
+
+        assertAll(
+                () -> assertEquals(HttpStatus.BAD_REQUEST.value(), mvc.getResponse().getStatus()),
+                () -> assertEquals("Validation Failed", getValue(mvc, "$.message")),
+                () -> assertEquals("size must be between 2 and 10", getValue(mvc, "$.details.name"))
+        );
     }
 }

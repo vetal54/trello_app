@@ -19,11 +19,11 @@ import java.util.UUID;
 @Table(name = "label")
 public class Label extends Domain {
 
-    @NotEmpty(message = "Name should be not empty!")
+    @NotEmpty(message = "Name should not be empty!")
     @Size(min = 2, max = 30)
     String name;
 
-    @NotEmpty(message = "Color should be not empty!")
+    @NotEmpty(message = "Color should not be empty!")
     @Size(min = 5, max = 30)
     String color;
 

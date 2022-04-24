@@ -1,123 +1,159 @@
 package spd.trello.controller;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.json.JSONException;
 import org.junit.jupiter.api.Test;
-import org.skyscreamer.jsonassert.JSONAssert;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.web.client.TestRestTemplate;
-import org.springframework.boot.web.server.LocalServerPort;
-import org.springframework.http.*;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.test.context.jdbc.Sql;
+import org.springframework.test.web.servlet.MvcResult;
 import spd.trello.Helper;
 import spd.trello.domian.CardList;
+import spd.trello.domian.User;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@SpringBootTest
 @Sql(statements = "DELETE FROM card_list")
-class CardListControllerIntegrationTest {
+@Sql(statements = "DELETE FROM user_table")
+class CardListControllerIntegrationTest extends AbstractIntegrationTest<CardList> {
+
+    private final String URL_TEMPLATE = "/card-list";
 
     @Autowired
     private Helper helper;
-    @Autowired
-    private TestRestTemplate restTemplate;
-
-    @LocalServerPort
-    private int port;
-
-    private final HttpHeaders headers = new HttpHeaders();
-    private final ObjectMapper mapper = new ObjectMapper();
-
-    private String getRootUrl() {
-        return "http://localhost:" + port;
-    }
 
     @Test
-    void cardListSave() {
+    void create() throws Exception {
         CardList cardList = new CardList();
         cardList.setName("name");
-        cardList.setCreateBy("email@gmail.com");
         cardList.setBoardId(helper.createBoard().getId());
 
-        ResponseEntity<CardList> response = restTemplate
-                .postForEntity(getRootUrl() + "/card-list", cardList, CardList.class);
+        User user = helper.createUser();
+        String token = helper.createUserAdminAndGetToken(user);
 
-        assertEquals(cardList, response.getBody());
-        assertEquals(HttpStatus.CREATED, response.getStatusCode());
+        MvcResult mvc = super.create(URL_TEMPLATE, cardList, token);
+
+        assertAll(
+                () -> assertEquals(HttpStatus.CREATED.value(), mvc.getResponse().getStatus()),
+                () -> assertNotNull(getValue(mvc, "$.id")),
+                () -> assertEquals(cardList.getId().toString(), getValue(mvc, "$.id")),
+                () -> assertEquals(cardList.getName(), getValue(mvc, "$.name")),
+                () -> assertEquals("admin@gmail.com", getValue(mvc, "$.createBy"))
+        );
     }
 
     @Test
-    void cardListFindAllNotEmpty() throws JSONException, JsonProcessingException {
+    void createValidationFailed() throws Exception {
+        CardList cardList = new CardList();
+        cardList.setBoardId(helper.createBoard().getId());
+
+        User user = helper.createUser();
+        String token = helper.createUserAdminAndGetToken(user);
+
+        MvcResult mvc = super.create(URL_TEMPLATE, cardList, token);
+
+        assertAll(
+                () -> assertEquals(HttpStatus.BAD_REQUEST.value(), mvc.getResponse().getStatus()),
+                () -> assertEquals("Validation Failed", getValue(mvc, "$.message")),
+                () -> assertEquals("Name should not be empty", getValue(mvc, "$.details.name"))
+        );
+    }
+
+    @Test
+    void delete() throws Exception {
+        CardList cardList = helper.createCardList();
+        User user = helper.createUser();
+
+        String token = helper.createUserAdminAndGetToken(user);
+
+        MvcResult mvc = super.delete(URL_TEMPLATE, cardList.getId(), token);
+        assertEquals(HttpStatus.OK.value(), mvc.getResponse().getStatus());
+    }
+
+    @Test
+    void findById() throws Exception {
         CardList cardList = helper.createCardList();
 
-        HttpEntity<String> entity = new HttpEntity<>(null, headers);
+        User user = helper.createUser();
+        String token = helper.createUserAdminAndGetToken(user);
 
-        ResponseEntity<String> response = restTemplate.exchange(
-                getRootUrl() + "/card-list", HttpMethod.GET, entity, String.class);
+        MvcResult mvc = super.getById(URL_TEMPLATE, cardList.getId(), token);
 
-        JSONAssert.assertEquals(mapper.writeValueAsString(List.of(cardList)), response.getBody(), false);
-        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertAll(
+                () -> assertEquals(HttpStatus.OK.value(), mvc.getResponse().getStatus()),
+                () -> assertNotNull(getValue(mvc, "$.id")),
+                () -> assertEquals(cardList.getId().toString(), getValue(mvc, "$.id")),
+                () -> assertEquals(cardList.getName(), getValue(mvc, "$.name")),
+                () -> assertEquals("admin@gmail.com", getValue(mvc, "$.createBy"))
+        );
     }
 
     @Test
-    void cardListFindAllEmptyList() throws JsonProcessingException, JSONException {
-        HttpEntity<String> entity = new HttpEntity<>(null, headers);
+    void findByIdFailed() throws Exception {
+        User user = helper.createUser();
+        String token = helper.createUserAdminAndGetToken(user);
 
-        ResponseEntity<String> response = restTemplate.exchange(
-                getRootUrl() + "/card-list", HttpMethod.GET, entity, String.class);
+        MvcResult mvc = super.getById(URL_TEMPLATE, UUID.randomUUID(), token);
 
-        JSONAssert.assertEquals(mapper.writeValueAsString(Collections.EMPTY_LIST), response.getBody(), false);
-        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(HttpStatus.NOT_FOUND.value(), mvc.getResponse().getStatus());
     }
 
     @Test
-    void cardListFindById() throws JSONException, JsonProcessingException {
+    void findAll() throws Exception {
+        CardList firstCardList = helper.createCardList();
+        CardList secondCardList = helper.createCardList();
+
+        User user = helper.createUser();
+        String token = helper.createUserAdminAndGetToken(user);
+
+        MvcResult mvc = super.findAll(URL_TEMPLATE, token);
+        List<CardList> cardLists = helper.getCardListsArray(mvc);
+
+        assertAll(
+                () -> assertEquals(MediaType.APPLICATION_JSON.toString(), mvc.getResponse().getContentType()),
+                () -> assertEquals(HttpStatus.OK.value(), mvc.getResponse().getStatus()),
+                () -> assertTrue(cardLists.contains(firstCardList)),
+                () -> assertTrue(cardLists.contains(secondCardList))
+        );
+    }
+
+    @Test
+    void update() throws Exception {
         CardList cardList = helper.createCardList();
-
-        ResponseEntity<String> response = restTemplate.getForEntity(
-                "/card-list/" + cardList.getId().toString(), String.class);
-
-        System.out.println(response.getBody());
-        JSONAssert.assertEquals(mapper.writeValueAsString(cardList), response.getBody(), false);
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-    }
-
-    @Test
-    void cardListFindByIdNotFound() {
-        ResponseEntity<String> response = restTemplate.getForEntity(
-                getRootUrl() + "/card-list" + UUID.randomUUID(), String.class);
-
-        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-    }
-
-    @Test
-    void cardListUpdate() throws JsonProcessingException, JSONException {
-        CardList cardList = helper.createCardList();
-
         cardList.setName("new Name");
-        HttpEntity<CardList> request = new HttpEntity<>(cardList, HttpHeaders.EMPTY);
 
-        ResponseEntity<String> response = restTemplate.exchange(
-                "/card-list/" + cardList.getId().toString(), HttpMethod.PUT, request, String.class);
+        User user = helper.createUser();
+        String token = helper.createUserAdminAndGetToken(user);
 
-        JSONAssert.assertEquals(mapper.writeValueAsString(cardList), response.getBody(), false);
-        assertEquals(HttpStatus.OK, response.getStatusCode());
+        MvcResult mvc = super.update(URL_TEMPLATE, cardList.getId(), cardList, token);
+
+        assertAll(
+                () -> assertEquals(HttpStatus.OK.value(), mvc.getResponse().getStatus()),
+                () -> assertNotNull(getValue(mvc, "$.id")),
+                () -> assertEquals(cardList.getId().toString(), getValue(mvc, "$.id")),
+                () -> assertEquals("new Name", getValue(mvc, "$.name")),
+                () -> assertEquals("admin@gmail.com", getValue(mvc, "$.createBy"))
+        );
     }
 
     @Test
-    void cardListDeleteById() {
+    void updateValidationFailed() throws Exception {
         CardList cardList = helper.createCardList();
+        cardList.setName("n");
 
-        ResponseEntity<String> response = restTemplate.exchange(
-                "/card-list/" + cardList.getId().toString(), HttpMethod.DELETE, HttpEntity.EMPTY, String.class);
+        User user = helper.createUser();
+        String token = helper.createUserAdminAndGetToken(user);
 
-        assertEquals(HttpStatus.OK, response.getStatusCode());
+        MvcResult mvc = super.update(URL_TEMPLATE, cardList.getId(), cardList, token);
+
+        assertAll(
+                () -> assertEquals(HttpStatus.BAD_REQUEST.value(), mvc.getResponse().getStatus()),
+                () -> assertEquals("Validation Failed", getValue(mvc, "$.message")),
+                () -> assertEquals("size must be between 2 and 30", getValue(mvc, "$.details.name"))
+        );
     }
 }
