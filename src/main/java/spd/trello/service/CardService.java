@@ -1,5 +1,6 @@
 package spd.trello.service;
 
+import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 import spd.trello.domian.Card;
 import spd.trello.domian.CheckList;
@@ -12,6 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Service
+@Log4j2
 public class CardService extends AbstractResourceService<Card, CardRepository> {
 
     public CardService(CardRepository repository) {
@@ -20,6 +22,7 @@ public class CardService extends AbstractResourceService<Card, CardRepository> {
 
     @Override
     public Card save(Card card) {
+        log.info("Card was saved successfully");
         Reminder reminder = card.getReminder();
         reminder.setCard(card);
 
@@ -40,8 +43,10 @@ public class CardService extends AbstractResourceService<Card, CardRepository> {
     @Override
     public Card update(Card card) {
         if (Boolean.TRUE.equals(card.getArchived())) {
+            log.error("Card updated impossible");
             throw new UpdateImpossible();
         }
+        log.info("Card was updated successfully");
         return repository.save(card);
     }
 }

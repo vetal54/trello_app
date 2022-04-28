@@ -1,5 +1,6 @@
 package spd.trello.service;
 
+import lombok.extern.log4j.Log4j2;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -17,6 +18,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Service
+@Log4j2
 public class UserService extends AbstractDomainService<User, UserRepository> {
 
     private final PasswordEncoder passwordEncoder;
@@ -31,11 +33,12 @@ public class UserService extends AbstractDomainService<User, UserRepository> {
     }
 
     public User register(User user) throws EmailAlreadyExists {
-
         if (checkIfUserExist(user.getEmail())) {
+            log.error("Email already exists: {}", user.getEmail());
             throw new EmailAlreadyExists("Email already exists");
         }
         encodePassword(user);
+        log.info("User registered successfully");
         return repository.save(user);
     }
 
@@ -47,13 +50,16 @@ public class UserService extends AbstractDomainService<User, UserRepository> {
             Map<Object, Object> response = new HashMap<>();
             response.put("email", authentication.getEmail());
             response.put("token", token);
+            log.info("User authenticated successfully");
             return response;
         } catch (AuthenticationException e) {
+            log.error("User not authenticated");
             throw new JwtAuthenticationException("Invalid email/password combination", HttpStatus.FORBIDDEN);
         }
     }
 
     public User findByEmail(String email) {
+        log.info("Search for a user by email");
         return repository.findByEmail(email);
     }
 
@@ -62,6 +68,7 @@ public class UserService extends AbstractDomainService<User, UserRepository> {
     }
 
     private void encodePassword(User user) {
+        log.info("Encode password");
         user.setPassword(passwordEncoder.encode(user.getPassword()));
     }
 }
