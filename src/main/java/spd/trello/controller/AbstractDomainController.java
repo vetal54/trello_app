@@ -1,8 +1,8 @@
 package spd.trello.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import spd.trello.domian.common.Domain;
 import spd.trello.exeption.ResourceNotFoundException;
@@ -12,7 +12,6 @@ import javax.validation.Valid;
 import java.util.List;
 import java.util.UUID;
 
-@Validated
 public class AbstractDomainController<E extends Domain, S extends CommonService<E>> implements CommonController<E> {
 
     S service;
@@ -23,14 +22,14 @@ public class AbstractDomainController<E extends Domain, S extends CommonService<
 
     @PostMapping
     @Override
-    public ResponseEntity<E> create(@Valid @RequestBody E resource) {
+    public ResponseEntity<E> create(@Valid @RequestBody E resource) throws JsonProcessingException {
         E result = service.save(resource);
         return new ResponseEntity<>(result, HttpStatus.CREATED);
     }
 
     @PutMapping("/{id}")
     @Override
-    public ResponseEntity<E> update(@PathVariable UUID id, @Valid @RequestBody E resource) {
+    public ResponseEntity<E> update(@PathVariable UUID id, @Valid @RequestBody E resource) throws JsonProcessingException {
         E entity = service.findById(id);
         if (entity == null) throw new ResourceNotFoundException();
         resource.setId(id);

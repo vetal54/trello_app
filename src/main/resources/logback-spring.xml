@@ -1,11 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
 
-    <!-- Setting up log path and log file name -->
     <property name="LOG_PATH" value="./logs" />
     <property name="LOG_FILE_NAME" value="logback" />
 
-    <!-- Setting up logging pattern for console logging -->
     <appender name="ConsoleOutput"
               class="ch.qos.logback.core.ConsoleAppender">
         <layout class="ch.qos.logback.classic.PatternLayout">
@@ -15,7 +13,6 @@
         </layout>
     </appender>
 
-    <!-- Setting the filename and logging pattern for log file -->
     <appender name="LogFile"
               class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>${LOG_PATH}/${LOG_FILE_NAME}.log</file>
@@ -25,8 +22,6 @@
             </Pattern>
         </encoder>
 
-        <!-- Setting up a rolling policy with rolling done
-              daily and when file size is 10MB-->
         <rollingPolicy
                 class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
             <fileNamePattern>${LOG_PATH}/archived/${LOG_FILE_NAME}-%d{yyyy-MM-dd}.%i.log
@@ -38,13 +33,11 @@
         </rollingPolicy>
     </appender>
 
-    <!-- Logging at INFO level -->
     <root level="info">
         <appender-ref ref="LogFile" />
         <appender-ref ref="ConsoleOutput" />
     </root>
 
-    <!-- Logging at TRACE level -->
     <logger name="com.log" level="trace" additivity="false">
         <appender-ref ref="LogFile" />
         <appender-ref ref="ConsoleOutput" />

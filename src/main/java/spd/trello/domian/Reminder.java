@@ -12,7 +12,6 @@ import org.hibernate.Hibernate;
 import spd.trello.domian.common.Domain;
 
 import javax.persistence.*;
-import javax.validation.constraints.FutureOrPresent;
 import java.time.LocalDateTime;
 import java.util.Objects;
 
@@ -25,21 +24,18 @@ import java.util.Objects;
 @Table(name = "reminder")
 public class Reminder extends Domain {
 
-    @FutureOrPresent
     @JsonDeserialize(using = LocalDateTimeDeserializer.class)
     @JsonSerialize(using = LocalDateTimeSerializer.class)
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss.SSS")
     @Column(name = "start_on")
     LocalDateTime start;
 
-    @FutureOrPresent
     @JsonDeserialize(using = LocalDateTimeDeserializer.class)
     @JsonSerialize(using = LocalDateTimeSerializer.class)
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss.SSS")
     @Column(name = "end_on")
     LocalDateTime end;
 
-    @FutureOrPresent
     @JsonDeserialize(using = LocalDateTimeDeserializer.class)
     @JsonSerialize(using = LocalDateTimeSerializer.class)
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm")

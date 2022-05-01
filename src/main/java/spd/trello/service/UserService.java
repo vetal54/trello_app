@@ -1,6 +1,7 @@
 package spd.trello.service;
 
-import lombok.extern.log4j.Log4j2;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -18,7 +19,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Service
-@Log4j2
+@Slf4j
 public class UserService extends AbstractDomainService<User, UserRepository> {
 
     private final PasswordEncoder passwordEncoder;
@@ -32,13 +33,13 @@ public class UserService extends AbstractDomainService<User, UserRepository> {
         this.jwtTokenProvider = jwtTokenProvider;
     }
 
-    public User register(User user) throws EmailAlreadyExists {
+    public User register(User user) throws EmailAlreadyExists, JsonProcessingException {
         if (checkIfUserExist(user.getEmail())) {
             log.error("Email already exists: {}", user.getEmail());
             throw new EmailAlreadyExists("Email already exists");
         }
         encodePassword(user);
-        log.info("User registered successfully");
+        log.info("User register successfully {}", mapper.writeValueAsString(user));
         return repository.save(user);
     }
 
@@ -50,7 +51,7 @@ public class UserService extends AbstractDomainService<User, UserRepository> {
             Map<Object, Object> response = new HashMap<>();
             response.put("email", authentication.getEmail());
             response.put("token", token);
-            log.info("User authenticated successfully");
+            log.info("User authenticated successfully, email: {}", authentication.getEmail());
             return response;
         } catch (AuthenticationException e) {
             log.error("User not authenticated");

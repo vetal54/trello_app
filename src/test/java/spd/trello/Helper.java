@@ -40,7 +40,7 @@ public class Helper {
     @Autowired
     private LabelService labelService;
 
-    public User createUser() {
+    public User createUser() throws JsonProcessingException {
         User user = new User();
         user.setFirstName("string");
         user.setLastName("string");
@@ -49,14 +49,14 @@ public class Helper {
         return userService.register(user);
     }
 
-    public Member createMember(User user) {
+    public Member createMember(User user) throws JsonProcessingException {
         Member member = new Member();
         member.setRole(Role.ADMIN);
         member.setUserId(user.getId());
         return memberService.save(member);
     }
 
-    public Workspace createWorkspace() {
+    public Workspace createWorkspace() throws JsonProcessingException {
         Workspace workspace = new Workspace();
         workspace.setName("string");
         workspace.setCreateBy("admin@gmail.com");
@@ -65,7 +65,7 @@ public class Helper {
         return workspaceService.save(workspace);
     }
 
-    public Board createBoard() {
+    public Board createBoard() throws JsonProcessingException {
         Board board = new Board();
         board.setName("string");
         board.setCreateBy("admin@gmail.com");
@@ -75,7 +75,7 @@ public class Helper {
         return boardService.save(board);
     }
 
-    public CardList createCardList() {
+    public CardList createCardList() throws JsonProcessingException {
         CardList cardList = new CardList();
         cardList.setName("string");
         cardList.setCreateBy("admin@gmail.com");
@@ -83,7 +83,7 @@ public class Helper {
         return cardListService.save(cardList);
     }
 
-    public Card createCard() {
+    public Card createCard() throws JsonProcessingException {
         Card card = new Card();
         card.setName("string");
         card.setDescription("description");
@@ -94,7 +94,7 @@ public class Helper {
         return cardService.save(card);
     }
 
-    public Attachment createAttachment() {
+    public Attachment createAttachment() throws JsonProcessingException {
         Attachment attachment = new Attachment();
         attachment.setName("string");
         attachment.setLink("https://www.youtube.com/");
@@ -103,15 +103,16 @@ public class Helper {
         return attachmentService.save(attachment);
     }
 
-    public Comment createComment() {
+    public Comment createComment(Member member) throws JsonProcessingException {
         Comment comment = new Comment();
         comment.setCreateBy("admin@gmail.com");
         comment.setContext("context text! Hello!");
         comment.setCardId(createCard().getId());
+        comment.setMemberId(member.getId());
         return commentService.save(comment);
     }
 
-    public Label createLabel() {
+    public Label createLabel() throws JsonProcessingException {
         Label label = new Label();
         label.setName("string");
         label.setColor("color");

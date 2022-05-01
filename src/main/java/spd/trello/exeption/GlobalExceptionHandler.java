@@ -2,7 +2,7 @@ package spd.trello.exeption;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpHeaders;
@@ -16,11 +16,13 @@ import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 import spd.trello.domian.ApiError;
 
+import java.time.LocalDateTime;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 @Order(Ordered.HIGHEST_PRECEDENCE)
-@Log4j2
+@Slf4j
 @ControllerAdvice
 public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
@@ -28,7 +30,6 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler(value = {NullPointerException.class, IllegalArgumentException.class})
     protected ResponseEntity<Object> handle(RuntimeException ex, WebRequest request) {
-        log.trace("Entering handle() method");
         String bodyOfResponse = "Something went wrong...";
         log.error("An error was found: {}", ex.getMessage());
         return handleExceptionInternal(ex, bodyOfResponse,
@@ -39,7 +40,6 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     @SuppressWarnings("NullableProblems")
     @Override
     protected ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException ex, HttpHeaders headers, HttpStatus status, WebRequest request) {
-        log.trace("Entering validate() method");
         Map<String, String> errors = new HashMap<>();
         ex.getBindingResult().getAllErrors().forEach((error) -> {
             String fieldName = ((FieldError) error).getField();
@@ -49,5 +49,14 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         ApiError error = new ApiError("Validation Failed", errors);
         log.error("The object is not valid: {}", mapper.writeValueAsString(error));
         return new ResponseEntity(error, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(ResourceNotFoundException.class)
+    protected ResponseEntity<Object> handleEntityResourceNotFoundException (ResourceNotFoundException ex) {
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("date", LocalDateTime.now());
+        body.put("message", ex.getMessage());
+        log.error("Resource not found error");
+        return new ResponseEntity(body, HttpStatus.NOT_FOUND);
     }
 }

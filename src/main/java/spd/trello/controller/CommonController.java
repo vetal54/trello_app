@@ -1,5 +1,6 @@
 package spd.trello.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import spd.trello.domian.common.Domain;
@@ -11,8 +12,8 @@ import java.util.UUID;
 
 public interface CommonController<E extends Domain> {
     ResponseEntity<E> create(@Valid E resource) throws IOException;
-    ResponseEntity<E> update(UUID id, @Valid E resource);
+    ResponseEntity<E> update(UUID id, @Valid E resource) throws JsonProcessingException;
     HttpStatus delete(UUID id);
-    ResponseEntity<E> readById(UUID id);
-    List<E> readAll();
+    ResponseEntity<E> readById(UUID id) throws JsonProcessingException;
+    List<E> readAll() throws JsonProcessingException;
 }

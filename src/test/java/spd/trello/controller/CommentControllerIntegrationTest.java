@@ -9,6 +9,7 @@ import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MvcResult;
 import spd.trello.Helper;
 import spd.trello.domian.Comment;
+import spd.trello.domian.Member;
 import spd.trello.domian.User;
 
 import java.util.List;
@@ -28,12 +29,14 @@ class CommentControllerIntegrationTest extends AbstractIntegrationTest<Comment> 
 
     @Test
     void create() throws Exception {
+        User user = helper.createUser();
+        Member member = helper.createMember(user);
+        String token = helper.createUserAdminAndGetToken(user);
+
         Comment comment = new Comment();
         comment.setContext("context text! Hello!");
         comment.setCardId(helper.createCard().getId());
-
-        User user = helper.createUser();
-        String token = helper.createUserAdminAndGetToken(user);
+        comment.setMemberId(member.getId());
 
         MvcResult mvc = super.create(URL_TEMPLATE, comment, token);
 
@@ -48,11 +51,13 @@ class CommentControllerIntegrationTest extends AbstractIntegrationTest<Comment> 
 
     @Test
     void createValidationFailed() throws Exception {
+        User user = helper.createUser();
+        Member member = helper.createMember(user);
+        String token = helper.createUserAdminAndGetToken(user);
+
         Comment comment = new Comment();
         comment.setCardId(helper.createCard().getId());
-
-        User user = helper.createUser();
-        String token = helper.createUserAdminAndGetToken(user);
+        comment.setMemberId(member.getId());
 
         MvcResult mvc = super.create(URL_TEMPLATE, comment, token);
 
@@ -65,10 +70,11 @@ class CommentControllerIntegrationTest extends AbstractIntegrationTest<Comment> 
 
     @Test
     void delete() throws Exception {
-        Comment comment = helper.createComment();
         User user = helper.createUser();
-
+        Member member = helper.createMember(user);
         String token = helper.createUserAdminAndGetToken(user);
+
+        Comment comment = helper.createComment(member);
 
         MvcResult mvc = super.delete(URL_TEMPLATE, comment.getId(), token);
         assertEquals(HttpStatus.OK.value(), mvc.getResponse().getStatus());
@@ -76,10 +82,11 @@ class CommentControllerIntegrationTest extends AbstractIntegrationTest<Comment> 
 
     @Test
     void findById() throws Exception {
-        Comment comment = helper.createComment();
-
         User user = helper.createUser();
+        Member member = helper.createMember(user);
         String token = helper.createUserAdminAndGetToken(user);
+
+        Comment comment = helper.createComment(member);
 
         MvcResult mvc = super.getById(URL_TEMPLATE, comment.getId(), token);
 
@@ -104,11 +111,12 @@ class CommentControllerIntegrationTest extends AbstractIntegrationTest<Comment> 
 
     @Test
     void findAll() throws Exception {
-        Comment firstComment = helper.createComment();
-        Comment secondComment = helper.createComment();
-
         User user = helper.createUser();
+        Member member = helper.createMember(user);
         String token = helper.createUserAdminAndGetToken(user);
+
+        Comment firstComment = helper.createComment(member);
+        Comment secondComment = helper.createComment(member);
 
         MvcResult mvc = super.findAll(URL_TEMPLATE, token);
         List<Comment> comments = helper.getCommentsArray(mvc);
@@ -123,11 +131,12 @@ class CommentControllerIntegrationTest extends AbstractIntegrationTest<Comment> 
 
     @Test
     void update() throws Exception {
-        Comment comment = helper.createComment();
-        comment.setContext("new Context");
-
         User user = helper.createUser();
+        Member member = helper.createMember(user);
         String token = helper.createUserAdminAndGetToken(user);
+
+        Comment comment = helper.createComment(member);
+        comment.setContext("new Context");
 
         MvcResult mvc = super.update(URL_TEMPLATE, comment.getId(), comment, token);
 
@@ -142,11 +151,12 @@ class CommentControllerIntegrationTest extends AbstractIntegrationTest<Comment> 
 
     @Test
     void updateValidationFailed() throws Exception {
-        Comment comment = helper.createComment();
-        comment.setContext("new Con");
-
         User user = helper.createUser();
+        Member member = helper.createMember(user);
         String token = helper.createUserAdminAndGetToken(user);
+
+        Comment comment = helper.createComment(member);
+        comment.setContext("new Con");
 
         MvcResult mvc = super.update(URL_TEMPLATE, comment.getId(), comment, token);
 

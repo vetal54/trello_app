@@ -31,6 +31,19 @@ spring:
     hibernate:
       ddl-auto: update
 
+  mail:
+    host: smtp.ethereal.email
+    port: 587
+    username: tomas.schiller20@ethereal.email
+    password: cywY3qyw9e7PxFx25W
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+
   messages:
     basename=validation
 

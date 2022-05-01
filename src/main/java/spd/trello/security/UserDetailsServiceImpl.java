@@ -1,6 +1,6 @@
 package spd.trello.security;
 
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -10,7 +10,7 @@ import spd.trello.domian.User;
 import spd.trello.repository.UserRepository;
 
 @Service("userDetailsServiceImpl")
-@Log4j2
+@Slf4j
 public class UserDetailsServiceImpl implements UserDetailsService {
 
     private final UserRepository userRepository;
@@ -22,9 +22,8 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        log.trace("Entering loadUserByUsername() method");
+        log.info("Load user by email");
         User user = userRepository.findByEmail(email);
-        log.info("Authenticating successfully");
         return SecurityUser.fromUser(user);
     }
 }
