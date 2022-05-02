@@ -11,6 +11,7 @@ import spd.trello.domian.Attachment;
 import spd.trello.domian.AttachmentFile;
 import spd.trello.exeption.FileCanNotBeUpload;
 import spd.trello.exeption.ResourceNotFoundException;
+import spd.trello.exeption.ValidationIsWrong;
 import spd.trello.repository.AttachmentFileRepository;
 import spd.trello.repository.AttachmentRepository;
 import spd.trello.repository.CardRepository;
@@ -45,6 +46,7 @@ public class AttachmentService extends AbstractResourceService<Attachment, Attac
     @Override
     public Attachment save(Attachment attachment) throws JsonProcessingException {
         log.info("Try saving attachment");
+        validateName(attachment.getName());
         validateReference(attachment);
         log.info("Attachment created successfully {}", mapper.writeValueAsString(attachment));
         return repository.save(attachment);
@@ -53,6 +55,7 @@ public class AttachmentService extends AbstractResourceService<Attachment, Attac
     @Override
     public Attachment update(Attachment attachment) throws JsonProcessingException {
         log.info("Try updating attachment");
+        validateName(attachment.getName());
         validateReference(attachment);
         log.info("Attachment updated successfully {}", mapper.writeValueAsString(attachment));
         return repository.save(attachment);
@@ -67,7 +70,7 @@ public class AttachmentService extends AbstractResourceService<Attachment, Attac
         attachment.setCardId(id);
         validateReference(attachment);
         log.info("Attachment created successfully {}", mapper.writeValueAsString(attachment));
-        return repository.save(attachment);
+        return save(attachment);
     }
 
     public void store(MultipartFile file, UUID id) throws IOException {
@@ -127,5 +130,12 @@ public class AttachmentService extends AbstractResourceService<Attachment, Attac
         log.info("Try checked foreign key");
         cardRepository.findById(attachment.getCardId()).orElseThrow(() ->
                 new ResourceNotFoundException("Card reference not valid. Id not corrected: " + attachment.getCardId()));
+    }
+
+    private void validateName(String name) {
+        if (name.length() > 100) {
+            log.error("Name size must be between 10 and 100");
+            throw new ValidationIsWrong("Name size must be between 10 and 100");
+        }
     }
 }

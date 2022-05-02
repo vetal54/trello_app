@@ -24,7 +24,7 @@ public class Attachment extends Resource {
     String link;
 
     @NotEmpty(message = "Name should not be empty")
-    @Size(min = 2, max = 10)
+    @Size(min = 2, max = 100)
     @Column(name = "name")
     String name;
 

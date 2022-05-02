@@ -8,7 +8,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import spd.trello.domian.AuthenticationRequestDTO;
+import spd.trello.domian.AuthenticationRequest;
 import spd.trello.domian.User;
 import spd.trello.exeption.EmailAlreadyExists;
 import spd.trello.exeption.JwtAuthenticationException;
@@ -43,7 +43,7 @@ public class UserService extends AbstractDomainService<User, UserRepository> {
         return repository.save(user);
     }
 
-    public Map<Object, Object> authenticate(AuthenticationRequestDTO authentication) {
+    public Map<Object, Object> authenticate(AuthenticationRequest authentication) {
         try {
             authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(authentication.getEmail(), authentication.getPassword()));
             User user = findByEmail(authentication.getEmail());

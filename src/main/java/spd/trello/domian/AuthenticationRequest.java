@@ -3,7 +3,7 @@ package spd.trello.domian;
 import lombok.Data;
 
 @Data
-public class AuthenticationRequestDTO {
+public class AuthenticationRequest {
     private String email;
     private String password;
 }

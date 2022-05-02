@@ -155,7 +155,7 @@ class AttachmentControllerIntegrationTest extends AbstractIntegrationTest<Attach
         assertAll(
                 () -> assertEquals(HttpStatus.BAD_REQUEST.value(), mvc.getResponse().getStatus()),
                 () -> assertEquals("Validation Failed", getValue(mvc, "$.message")),
-                () -> assertEquals("size must be between 2 and 10", getValue(mvc, "$.details.name"))
+                () -> assertEquals("size must be between 2 and 100", getValue(mvc, "$.details.name"))
         );
     }
 }

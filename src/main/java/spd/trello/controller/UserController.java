@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import spd.trello.domian.AuthenticationRequestDTO;
+import spd.trello.domian.AuthenticationRequest;
 import spd.trello.domian.User;
 import spd.trello.service.UserService;
 
@@ -36,7 +36,7 @@ public class UserController extends AbstractDomainController<User, UserService> 
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> authenticate(@RequestBody AuthenticationRequestDTO request) {
+    public ResponseEntity<?> authenticate(@RequestBody AuthenticationRequest request) {
         Map<Object, Object> response = service.authenticate(request);
         log.info("Authentication was successful");
         return ResponseEntity.ok(response);

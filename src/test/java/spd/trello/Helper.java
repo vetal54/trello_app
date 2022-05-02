@@ -138,7 +138,7 @@ public class Helper {
     }
 
     public String createUserAdminAndGetToken(User user) {
-        AuthenticationRequestDTO authentication = new AuthenticationRequestDTO();
+        AuthenticationRequest authentication = new AuthenticationRequest();
         authentication.setEmail(user.getEmail());
         authentication.setPassword("admin");
         Map<Object, Object> result = userService.authenticate(authentication);
