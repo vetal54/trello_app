@@ -1,0 +1,67 @@
+spring:
+  application:
+    name: trello-app
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 2048MB
+      max-request-size: 2048MB
+      file-size-threshold: 2048MB
+      location: attachment-file\\
+
+  datasource:
+    type: com.zaxxer.hikari.HikariDataSource
+    url: jdbc:postgresql://localhost:5432/trello
+    username: postgres
+    password: vetal54
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 50
+
+  flyway:
+    enabled: true
+    validate-on-migrate: true
+
+  jpa:
+    show-sql: true
+    open-in-view: false
+    properties:
+      hibernate.format_sql: true
+    # Hibernate ddl auto (create, create-drop, validate, update)
+    hibernate:
+      ddl-auto: update
+
+  mail:
+    host: smtp.ethereal.email
+    port: 587
+    username: tomas.schiller20@ethereal.email
+    password: cywY3qyw9e7PxFx25W
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+
+  mvc:
+    view:
+      prefix: /
+      suffix: .jsp
+    pathmatch:
+      matching-strategy: ant_path_matcher
+
+  jwt:
+    header: Authorization
+    secret: proselyte
+    expiration: 604800
+
+server:
+  error:
+    include-message: always
+    include-exception: true
+  port: 8081
+
+application:
+  swiche: false
+  pagination-feature: true

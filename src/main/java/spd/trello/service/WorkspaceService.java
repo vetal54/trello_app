@@ -1,25 +1,48 @@
 package spd.trello.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import spd.trello.domain.Workspace;
-import spd.trello.domain.WorkspaceVisibility;
-import spd.trello.repository.WorkspaceRepositoryImpl;
+import spd.trello.domian.Workspace;
+import spd.trello.exeption.ResourceNotFoundException;
+import spd.trello.repository.MemberRepository;
+import spd.trello.repository.WorkspaceRepository;
+
+import java.util.UUID;
 
 @Service
-public class WorkspaceService extends ServiceLayer<Workspace> {
+@Slf4j
+public class WorkspaceService extends AbstractResourceService<Workspace, WorkspaceRepository> implements Validator<Workspace> {
 
-    public WorkspaceService(WorkspaceRepositoryImpl repository) {
+    private final MemberRepository memberRepository;
+
+    public WorkspaceService(WorkspaceRepository repository, MemberRepository memberRepository) {
         super(repository);
+        this.memberRepository = memberRepository;
     }
 
-    public Workspace create(String name, String email, WorkspaceVisibility ws, String description) {
-        Workspace workspace = new Workspace();
-        workspace.setName(name);
-        workspace.setCreateBy(email);
-        workspace.setVisibility(ws);
-        workspace.setDescription(description);
-        print(workspace);
-        repository.create(workspace);
-        return repository.getById(workspace.getId());
+    @Override
+    public Workspace save(Workspace workspace) throws JsonProcessingException {
+        log.info("Try saving workspace");
+        validateReference(workspace);
+        log.info("Workspace created successfully {}", mapper.writeValueAsString(workspace));
+        return repository.save(workspace);
+    }
+
+    @Override
+    public Workspace update(Workspace workspace) throws JsonProcessingException {
+        log.info("Try updating workspace");
+        validateReference(workspace);
+        log.info("Workspace updated successfully {}", mapper.writeValueAsString(workspace));
+        return repository.save(workspace);
+    }
+
+    @Override
+    public void validateReference(Workspace workspace) {
+        log.info("Try checked foreign key");
+        for (UUID id : workspace.getMemberIds()) {
+            memberRepository.findById(id).orElseThrow(() ->
+                    new ResourceNotFoundException("Member reference not valid. Id not corrected: " + id));
+        }
     }
 }

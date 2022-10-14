@@ -1,41 +1,58 @@
 package spd.trello.configuration;
 
-import com.zaxxer.hikari.HikariConfig;
-import com.zaxxer.hikari.HikariDataSource;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import springfox.documentation.builders.ApiInfoBuilder;
+import springfox.documentation.builders.PathSelectors;
+import springfox.documentation.builders.RequestHandlerSelectors;
+import springfox.documentation.service.ApiInfo;
+import springfox.documentation.service.ApiKey;
+import springfox.documentation.service.AuthorizationScope;
+import springfox.documentation.service.SecurityReference;
+import springfox.documentation.spi.DocumentationType;
+import springfox.documentation.spi.service.contexts.SecurityContext;
+import springfox.documentation.spring.web.plugins.Docket;
 
-import javax.sql.DataSource;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Properties;
+import java.util.Collections;
+import java.util.List;
 
 @Configuration
-@ComponentScan(basePackages = {"spd.trello.repository", "spd.trello.service"})
 public class Config {
 
-    private static Properties loadProperties() throws IOException {
-        InputStream in = Config.class.getClassLoader()
-                .getResourceAsStream("application.properties");
-
-        Properties properties = new Properties();
-        properties.load(in);
-        return properties;
+    @Bean
+    public Docket productApi() {
+        return new Docket(DocumentationType.SWAGGER_2).apiInfo(apiInfo())
+                .select().apis(RequestHandlerSelectors.basePackage("spd.trello.controller"))
+                .paths(PathSelectors.any()).build()
+                .useDefaultResponseMessages(false)
+                .securitySchemes(Collections.singletonList(apiKey()))
+                .securityContexts(Collections.singletonList(securityContext()));
     }
 
-    @Bean
-    public DataSource createDataSource() throws IOException {
-        Properties properties = loadProperties();
+    private ApiKey apiKey() {
+        return new ApiKey("Authorization", "Authorization", "header");
+    }
 
-        HikariConfig cfg = new HikariConfig();
-        cfg.setJdbcUrl(properties.getProperty("jdbc.url"));
-        cfg.setUsername(properties.getProperty("jdbc.username"));
-        cfg.setPassword(properties.getProperty("jdbc.password"));
+    private SecurityContext securityContext() {
+        return SecurityContext.builder()
+                .securityReferences(defaultAuth())
+                .forPaths(PathSelectors.any())
+                .build();
+    }
 
-        int maxConnection = Integer.parseInt(properties.getProperty("jdbc.pool.maxConnection"));
-        cfg.setMaximumPoolSize(maxConnection);
+    private List<SecurityReference> defaultAuth() {
+        AuthorizationScope authorizationScope = new AuthorizationScope("global", "accessEverything");
+        AuthorizationScope[] authorizationScopes = new AuthorizationScope[1];
+        authorizationScopes[0] = authorizationScope;
+        return List.of(new SecurityReference("Authorization", authorizationScopes));
+    }
 
-        return new HikariDataSource(cfg);
+    private ApiInfo apiInfo() {
+        return new ApiInfoBuilder()
+                .title("REST API Document")
+                .description("description for api")
+                .termsOfServiceUrl("localhost")
+                .version("1.0")
+                .build();
     }
 }
